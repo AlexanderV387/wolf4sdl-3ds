@@ -3,10 +3,6 @@
 
 #ifndef VERSIONALREADYCHOSEN              // used for batch compiling
 
-#ifndef DATADIR
-#define DATADIR "/3ds/wolf4sdl/wolf3d/"
-#endif
-
 /* Defines used for different versions */
 
 //#define SPEAR
@@ -33,6 +29,17 @@
     Spear of Destiny Demo                     - define CARMACIZED and SPEAR and SPEARDEMO
 */
 
+#endif
+
+// Data directory on the SD card. Wolf3D and Spear of Destiny use separate
+// folders so their configs and savegames don't mix.
+#ifndef DATADIR
+#ifdef SPEAR
+#define CONFIGDIR "/3ds/wolf4sdl/sod"
+#else
+#define CONFIGDIR "/3ds/wolf4sdl/wolf3d"
+#endif
+#define DATADIR CONFIGDIR "/"
 #endif
 
 //#define USE_FEATUREFLAGS    // Enables the level feature flags (see bottom of wl_def.h)

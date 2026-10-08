@@ -73,7 +73,7 @@ boolean startgame;
 boolean loadedgame;
 int     mouseadjustment;
 
-char    configdir[256] = "/3ds/wolf4sdl/wolf3d";
+char    configdir[256] = CONFIGDIR;  // no trailing "/": added when joining paths
 char    configname[13] = "config.";
 
 //

@@ -46,6 +46,11 @@ CFLAGS	:=	-Wno-narrowing -Ofast -mword-relocations \
 
 CFLAGS	+=	$(INCLUDE) -D__3DS__
 
+# Select the game version at build time, e.g.:
+#   make TARGET=wolf4sdl-sod BUILD=build-sod \
+#        EXTRA_CFLAGS="-DVERSIONALREADYCHOSEN -DCARMACIZED -DSPEAR -DGOODTIMES"
+CFLAGS	+=	$(EXTRA_CFLAGS)
+
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)

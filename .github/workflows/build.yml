@@ -1,0 +1,100 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: wolf3d
+            flags: -DCARMACIZED -DGOODTIMES
+          - variant: wolf3d-shareware
+            flags: -DCARMACIZED -DUPLOAD
+          - variant: sod
+            flags: -DCARMACIZED -DSPEAR -DGOODTIMES
+          - variant: sod-demo
+            flags: -DCARMACIZED -DSPEAR -DSPEARDEMO
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install SDL 1.2 portlibs
+        run: |
+          dkp-pacman -Sy
+          echo "Available 3DS packages:"; dkp-pacman -Slq | grep '^3ds-' | tr '\n' ' '; echo
+          for p in 3ds-sdl 3ds-sdl_mixer 3ds-sdl_ttf 3ds-sdl_image 3ds-sdl_gfx \
+                   3ds-libvorbisidec 3ds-libmikmod 3ds-libmad 3ds-libogg \
+                   3ds-freetype 3ds-libpng 3ds-libjpeg-turbo 3ds-zlib; do
+            dkp-pacman -S --noconfirm --needed "$p" || echo "::warning::package not found: $p"
+          done
+
+      - name: Build
+        run: |
+          make TARGET=wolf4sdl-${{ matrix.variant }} BUILD=build-${{ matrix.variant }} \
+               EXTRA_CFLAGS="-DVERSIONALREADYCHOSEN ${{ matrix.flags }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wolf4sdl-${{ matrix.variant }}
+          path: wolf4sdl-${{ matrix.variant }}.3dsx
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: elf-${{ matrix.variant }}
+          path: wolf4sdl-${{ matrix.variant }}.elf
+
+  cia:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: wolf3d
+            title: Wolf4SDL 3DS
+            desc: Wolfenstein 3D (v1.4 Activision/Steam/GOG)
+            id: "0xF3D51"
+            code: CTR-H-W3DS
+          - variant: wolf3d-shareware
+            title: Wolf4SDL 3DS Shareware
+            desc: Wolfenstein 3D shareware (episode 1)
+            id: "0xF3D52"
+            code: CTR-H-W3SW
+          - variant: sod
+            title: Wolf4SDL 3DS SoD
+            desc: Spear of Destiny
+            id: "0xF3D53"
+            code: CTR-H-SODF
+          - variant: sod-demo
+            title: Wolf4SDL 3DS SoD Demo
+            desc: Spear of Destiny demo
+            id: "0xF3D54"
+            code: CTR-H-SODD
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: elf-${{ matrix.variant }}
+
+      - name: Install makerom and bannertool
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: tools/3ds/install-tools.sh
+
+      - name: Make CIA
+        run: |
+          tools/3ds/make-cia.sh wolf4sdl-${{ matrix.variant }}.elf wolf4sdl-${{ matrix.variant }}.cia \
+            "${{ matrix.title }}" "${{ matrix.desc }}" "AlexanderV387, hax0kartik, Wolf4SDL" \
+            ${{ matrix.id }} ${{ matrix.code }} \
+            assets/icon.png assets/banner-${{ matrix.variant }}.png assets/banner.wav
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wolf4sdl-${{ matrix.variant }}-cia
+          path: wolf4sdl-${{ matrix.variant }}.cia
