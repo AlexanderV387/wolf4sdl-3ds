@@ -78,6 +78,8 @@ memptr demobuffer;
 // current user input
 //
 int controlx, controly;         // range from -100 to 100 per tic
+int controlstrafe;              // analog strafe, + is right (dual stick mode)
+boolean dualstick = true;       // Circle Pad moves and strafes, C-stick turns
 boolean buttonstate[NUMBUTTONS];
 
 int lastgamemusicoffset = 0;
@@ -422,6 +424,7 @@ void PollControls (void)
 
     controlx = 0;
     controly = 0;
+    controlstrafe = 0;
     memcpy (buttonheld, buttonstate, sizeof (buttonstate));
     memset (buttonstate, 0, sizeof (buttonstate));
 
@@ -528,8 +531,23 @@ void PollControls (void)
 	else 
         cy = 0;
 
-    controlx += cx * 10/(13-mouseadjustment);
 	controly += cy * 20/(13-mouseadjustment);
+
+    if (dualstick)
+    {
+        // Circle Pad X strafes at the same rate it moves forward,
+        // and the C-stick (New 3DS) turns.
+        controlstrafe = (cpos.dx >> 2) * 20/(13-mouseadjustment);
+        if (abs(cpos.dx) <= 32)
+            controlstrafe = 0;
+
+        circlePosition cstick;
+        hidCstickRead(&cstick);
+        if (abs(cstick.dx) > 16)
+            controlx += (cstick.dx >> 1) * 10/(13-mouseadjustment);
+    }
+    else
+        controlx += cx * 10/(13-mouseadjustment);
 
     //PollKeyboardMove ();
 
@@ -553,6 +571,11 @@ void PollControls (void)
         controly = max;
     else if (controly < min)
         controly = min;
+
+    if (controlstrafe > max)
+        controlstrafe = max;
+    else if (controlstrafe < min)
+        controlstrafe = min;
 
     if (demorecord)
     {

@@ -260,6 +260,24 @@ void ControlMovement (objtype *ob)
     }
 
     //
+    // analog strafe (dual stick mode)
+    //
+    if (controlstrafe > 0)
+    {
+        angle = ob->angle - ANGLES/4;
+        if (angle < 0)
+            angle += ANGLES;
+        Thrust (angle,controlstrafe*MOVESCALE);     // move to right
+    }
+    else if (controlstrafe < 0)
+    {
+        angle = ob->angle + ANGLES/4;
+        if (angle >= ANGLES)
+            angle -= ANGLES;
+        Thrust (angle,-controlstrafe*MOVESCALE);    // move to left
+    }
+
+    //
     // forward/backwards move
     //
     if (controly < 0)

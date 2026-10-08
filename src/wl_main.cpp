@@ -838,8 +838,10 @@ void SignonScreen (void)                        // VGA version
 {
     VL_SetVGAPlaneMode ();
 
+#ifndef __3DS__                 // the DOS memory check screen means nothing on 3DS
     VL_MungePic (signon,320,200);
     VL_MemToScreen (signon,320,200,0,0);
+#endif
 }
 
 
@@ -853,6 +855,10 @@ void SignonScreen (void)                        // VGA version
 
 void FinishSignon (void)
 {
+#ifdef __3DS__
+    SETFONTCOLOR(0,15);
+    return;                     // no "Press a key" wait: go straight to the title
+#endif
 #ifndef SPEAR
     VW_Bar (0,189,300,11,VL_GetPixel(0,0));
     WindowX = 0;
@@ -1315,7 +1321,9 @@ static void InitGame()
 //
 // draw intro screen stuff
 //
+#ifndef __3DS__
     IntroScreen ();
+#endif
 
 #ifdef _arch_dreamcast
     //TODO: VMU Selection Screen
