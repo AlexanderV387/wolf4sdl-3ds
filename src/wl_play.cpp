@@ -497,27 +497,27 @@ void PollControls (void)
         controlx += delta;
 
     circlePosition cpos;
-    int cx = 0, cy = 0;
+    int cx = 0;                     // classic mode: Circle Pad X turns
 	hidCircleRead(&cpos);
 	if (abs(cpos.dx) > 32) 
         cx = (cpos.dx) >> 1;
-	else
-        cx = 0;
-	
-    if (abs(cpos.dy) > 32) 
-        cy = (0-(cpos.dy)) >> 2;
-	else 
-        cy = 0;
 
-	controly += cy * 20/(13-mouseadjustment);
+    // Circle Pad movement: fully pushed is walking speed, and the run
+    // button turns it into running speed, as with the D-pad. Scaled by tics
+    // so the speed does not depend on the frame rate.
+    int padspeed = buttonstate[bt_run] ? RUNMOVE : BASEMOVE;
+    int padx = 0, pady = 0;
+    if (abs(cpos.dx) > 32)
+        padx = cpos.dx > 150 ? 150 : (cpos.dx < -150 ? -150 : cpos.dx);
+    if (abs(cpos.dy) > 32)
+        pady = cpos.dy > 150 ? 150 : (cpos.dy < -150 ? -150 : cpos.dy);
+
+    controly -= pady * padspeed * (int) tics / 150;
 
     if (dualstick)
     {
-        // Circle Pad X strafes at the same rate it moves forward,
-        // and the C-stick (New 3DS) turns.
-        controlstrafe = (cpos.dx >> 2) * 20/(13-mouseadjustment);
-        if (abs(cpos.dx) <= 32)
-            controlstrafe = 0;
+        // Circle Pad X strafes and the C-stick (New 3DS) turns.
+        controlstrafe = padx * padspeed * (int) tics / 150;
 
         circlePosition cstick;
         hidCstickRead(&cstick);
