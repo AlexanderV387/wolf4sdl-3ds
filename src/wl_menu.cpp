@@ -124,7 +124,7 @@ CP_itemtype SndMenu[] = {
 #ifdef JAPAN
 enum { CTL_MOUSEENABLE, CTL_JOYENABLE, CTL_JOY2BUTTONUNKNOWN, CTL_GAMEPADUNKONWN, CTL_MOUSESENS, CTL_CUSTOMIZE };
 #else
-enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_TOUCHTURN };
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_TOUCHTURN, CTL_TOUCHSPEED };
 #endif
 
 CP_itemtype CtlMenu[] = {
@@ -142,7 +142,8 @@ CP_itemtype CtlMenu[] = {
     {1, "Run: hold button", 0},           // text set by DrawCtlScreen
     {1, "Customize buttons", CustomControls},
     {1, "HUD: bottom", 0},                // text set by DrawCtlScreen
-    {1, "Touch turning", 0}
+    {1, "Touch turning", 0},
+    {1, "Touch speed: 4", 0}              // text set by DrawCtlScreen
 #else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
@@ -1940,6 +1941,13 @@ CP_Control (int)
                 ShootSnd ();
                 WaitKeyUp ();
                 break;
+
+            case CTL_TOUCHSPEED:                // A cycles 1..10
+                touchspeed = touchspeed % 10 + 1;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
 #endif
 
             case CTL_JOYENABLE:
@@ -2128,6 +2136,8 @@ DrawCtlScreen (void)
     static const char *hudnames[NUMHUDPOS] =
         { "HUD: top of bottom screen", "HUD: middle", "HUD: bottom" };
     strcpy (CtlMenu[CTL_HUDPOS].string, hudnames[hudpos]);
+    snprintf (CtlMenu[CTL_TOUCHSPEED].string, sizeof (CtlMenu[CTL_TOUCHSPEED].string),
+              "Touch speed: %d", touchspeed);
     DrawMenu (&CtlItems, CtlMenu);
 
     x = CTL_X + CtlItems.indent - 24;

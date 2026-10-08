@@ -1039,6 +1039,7 @@ extern  boolean     dualstick;
 enum { runmode_stick, runmode_hold, runmode_toggle, NUMRUNMODES };
 extern  int         runmode;
 extern  boolean     touchturn;
+extern  int         touchspeed;
 extern  boolean     buttonstate[NUMBUTTONS];
 extern  objtype     objlist[MAXACTORS];
 extern  boolean     buttonheld[NUMBUTTONS];

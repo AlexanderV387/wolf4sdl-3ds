@@ -84,6 +84,7 @@ int controlstrafe;              // analog strafe, + is right (dual stick mode)
 boolean dualstick = true;       // Circle Pad moves and strafes, C-stick turns
 int runmode = runmode_hold;
 boolean touchturn = false;      // drag on the touch screen to turn (no C-stick)
+int touchspeed = 4;             // 1-10
 boolean buttonstate[NUMBUTTONS];
 
 int lastgamemusicoffset = 0;
@@ -541,16 +542,17 @@ void PollControls (void)
         controlx += cx * 10/(13-mouseadjustment);
 
     // Touch turning: a horizontal drag on the touch screen turns, like a
-    // right stick or a mouse. A full 320 px swipe is about 80 degrees at
-    // the default sensitivity.
+    // right stick or a mouse. 20 units are one degree, so at the default
+    // speed (4) a full 320 px swipe turns about 190 degrees.
     static boolean wastouching = false;
     static int lasttouchx = 0;
+    int touchturnx = 0;
     if (touchturn && (kDown & KEY_TOUCH))
     {
         touchPosition touch;
         hidTouchRead(&touch);
         if (wastouching)
-            controlx += (touch.px - lasttouchx) * 40/(13-mouseadjustment);
+            touchturnx = (touch.px - lasttouchx) * 3 * touchspeed;
         lasttouchx = touch.px;
         wastouching = true;
     }
@@ -615,6 +617,10 @@ void PollControls (void)
             controly *= (int) tics;
         }
     }
+
+    // Touch turning is added after the per-tic limit: that limit is meant
+    // for keys and sticks and would cut a fast swipe short.
+    controlx += touchturnx;
 }
 
 

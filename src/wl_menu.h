@@ -67,14 +67,14 @@
 #define SM_H3   3*13-7
 
 #define CTL_X   CENTERX - (160 - 24)
-#ifdef JAPAN
-#define CTL_Y   70
+#if defined(JAPAN) || defined(__3DS__)
+#define CTL_Y   70      // 3DS: higher, to fit the extra rows
 #else
 #define CTL_Y   86
 #endif
 #define CTL_W   284
 #ifdef __3DS__
-#define CTL_H   86      // two more rows: HUD position, touch turning
+#define CTL_H   99      // three more rows: HUD position, touch turning and speed
 #else
 #define CTL_H   60
 #endif
