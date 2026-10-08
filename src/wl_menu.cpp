@@ -1906,6 +1906,7 @@ CP_Control (int)
                 dualstick ^= 1;
                 DrawCtlScreen ();
                 ShootSnd ();
+                WaitKeyUp ();           // one change per press
                 break;
 #endif
                 mouseenabled ^= 1;
@@ -1921,6 +1922,7 @@ CP_Control (int)
                 runmode = (runmode + 1) % NUMRUNMODES;
                 DrawCtlScreen ();
                 ShootSnd ();
+                WaitKeyUp ();           // one change per press
                 break;
 #endif
                 joystickenabled ^= 1;
@@ -2249,7 +2251,7 @@ static void N3DS_DrawCustomScreen (void)
     DrawMenu (&N3dsCusItems, N3dsCusMenu);
     for (int r = 0; r < N3DS_NUMACTIONS; r++)
         N3DS_DrawBinding (r, false);
-    N3DS_DrawFooter ("A: assign   B: back   START: exit menu");
+    N3DS_DrawFooter ("A: assign  B: back  START: exit");
     DrawMenuGun (&N3dsCusItems);
     VW_UpdateScreen ();
 }
@@ -2279,7 +2281,7 @@ static int N3DS_CustomControls (void)
             boolean cancel = false;
 
             N3DS_DrawBinding (which, true);
-            N3DS_DrawFooter ("Press the button for this action (START: cancel)");
+            N3DS_DrawFooter ("Press a button (START: cancel)");
             VW_UpdateScreen ();
             WaitKeyUp ();                       // release the A that chose the row
 
@@ -2301,7 +2303,7 @@ static int N3DS_CustomControls (void)
 
             for (int r = 0; r < N3DS_NUMACTIONS; r++)
                 N3DS_DrawBinding (r, false);
-            N3DS_DrawFooter ("A: assign   B: back   START: exit menu");
+            N3DS_DrawFooter ("A: assign  B: back  START: exit");
             VW_UpdateScreen ();
 
             // wait for release so the button does not act on the menu

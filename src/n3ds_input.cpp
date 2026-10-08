@@ -18,14 +18,14 @@ static const u32 n3dsmask[N3DS_NUMBUTTONS] =
 
 void N3DS_DefaultBindings (void)
 {
-    n3dsbind[n3ds_A]      = bt_attack;
-    n3dsbind[n3ds_B]      = bt_use;
-    n3dsbind[n3ds_X]      = bt_strafe;
-    n3dsbind[n3ds_Y]      = bt_run;
-    n3dsbind[n3ds_L]      = bt_prevweapon;
-    n3dsbind[n3ds_R]      = bt_nextweapon;
-    n3dsbind[n3ds_ZL]     = bt_run;
+    n3dsbind[n3ds_R]      = bt_attack;      // R fires, as in most FPS
     n3dsbind[n3ds_ZR]     = bt_attack;
+    n3dsbind[n3ds_A]      = bt_use;
+    n3dsbind[n3ds_B]      = bt_run;
+    n3dsbind[n3ds_ZL]     = bt_run;
+    n3dsbind[n3ds_X]      = bt_nextweapon;
+    n3dsbind[n3ds_Y]      = bt_prevweapon;
+    n3dsbind[n3ds_L]      = bt_strafe;
     n3dsbind[n3ds_SELECT] = bt_pause;
 }
 
@@ -59,27 +59,55 @@ void N3DS_PollButtons (void)
 // Bottom screen: SDL draws its text console there. A tap turns the
 // backlight off to hide it (and save battery); another tap turns it on.
 //
+// The gsp::Lcd session is opened only around each call: keeping it open
+// can block the HOME Menu, which needs the same service.
+//
 
 static bool bottomon = true;
-static bool lcdready = false;
+static aptHookCookie apthook;
+
+static void SetBottomBacklight (bool on)
+{
+    if (R_FAILED (gspLcdInit ()))
+        return;
+    if (on)
+        GSPLCD_PowerOnBacklight (GSPLCD_SCREEN_BOTTOM);
+    else
+        GSPLCD_PowerOffBacklight (GSPLCD_SCREEN_BOTTOM);
+    gspLcdExit ();
+}
+
+// Never leave the HOME Menu or sleep mode with the bottom screen off.
+static void AptHook (APT_HookType hook, void *)
+{
+    switch (hook)
+    {
+        case APTHOOK_ONSUSPEND:
+        case APTHOOK_ONSLEEP:
+        case APTHOOK_ONEXIT:
+            if (!bottomon)
+                SetBottomBacklight (true);
+            break;
+        case APTHOOK_ONRESTORE:
+        case APTHOOK_ONWAKEUP:
+            if (!bottomon)
+                SetBottomBacklight (false);
+            break;
+        default:
+            break;
+    }
+}
 
 static void RestoreBottomScreen (void)
 {
-    if (!lcdready)
-        return;
     if (!bottomon)
-        GSPLCD_PowerOnBacklight (GSPLCD_SCREEN_BOTTOM);
-    gspLcdExit ();
-    lcdready = false;
+        SetBottomBacklight (true);
 }
 
 void N3DS_InitBottomScreen (void)
 {
-    if (R_SUCCEEDED (gspLcdInit ()))
-    {
-        lcdready = true;
-        atexit (RestoreBottomScreen);   // never leave the HOME Menu with it off
-    }
+    aptHook (&apthook, AptHook, NULL);
+    atexit (RestoreBottomScreen);
 }
 
 void N3DS_PollBottomScreenToggle (void)
@@ -87,13 +115,10 @@ void N3DS_PollBottomScreenToggle (void)
     static bool wastouching = false;
     bool touching = (hidKeysHeld () & KEY_TOUCH) != 0;
 
-    if (touching && !wastouching && lcdready)
+    if (touching && !wastouching)
     {
         bottomon = !bottomon;
-        if (bottomon)
-            GSPLCD_PowerOnBacklight (GSPLCD_SCREEN_BOTTOM);
-        else
-            GSPLCD_PowerOffBacklight (GSPLCD_SCREEN_BOTTOM);
+        SetBottomBacklight (bottomon);
     }
     wastouching = touching;
 }
