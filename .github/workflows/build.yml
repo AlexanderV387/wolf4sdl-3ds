@@ -25,10 +25,11 @@ jobs:
 
       - name: Install SDL 1.2 portlibs
         run: |
-          dkp-pacman -Sy
+          # The image already ships most portlibs; a failed sync is not fatal.
+          dkp-pacman -Sy || (sleep 10 && dkp-pacman -Sy) || true
           echo "Available 3DS packages:"; dkp-pacman -Slq | grep '^3ds-' | tr '\n' ' '; echo
           for p in 3ds-sdl 3ds-sdl_mixer 3ds-sdl_ttf 3ds-sdl_image 3ds-sdl_gfx \
-                   3ds-libvorbisidec 3ds-libmikmod 3ds-libmad 3ds-libogg \
+                   3ds-libvorbisidec 3ds-libmad 3ds-libogg \
                    3ds-freetype 3ds-libpng 3ds-libjpeg-turbo 3ds-zlib; do
             dkp-pacman -S --noconfirm --needed "$p" || echo "::warning::package not found: $p"
           done

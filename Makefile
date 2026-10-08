@@ -33,7 +33,7 @@ BUILD		    :=	build
 SOURCES         :=  src src/mame
 DATA		    :=	data
 INCLUDES        :=  include
-ROMFS		    :=	romfs
+ROMFS		    :=	# unused: the game data lives on the SD card
 
 #---------------------------------------------------------------------------------
 # options for code generation
