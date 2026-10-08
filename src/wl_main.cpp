@@ -191,6 +191,9 @@ void ReadConfig(void)
             if(read(file,&hudpos,sizeof(hudpos)) != sizeof(hudpos)
                     || hudpos < 0 || hudpos >= NUMHUDPOS)
                 hudpos = hudpos_bottom;
+            if(read(file,&touchturn,sizeof(touchturn)) != sizeof(touchturn))
+                touchturn = false;
+            touchturn = touchturn ? true : false;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
                 if(n3dsbind[i] < bt_nobutton || n3dsbind[i] >= NUMBUTTONS)
                     n3dsbind[i] = bt_nobutton;
@@ -324,6 +327,7 @@ void WriteConfig(void)
         write(file,n3dsbind,sizeof(n3dsbind));
         write(file,&runmode,sizeof(runmode));
         write(file,&hudpos,sizeof(hudpos));
+        write(file,&touchturn,sizeof(touchturn));
 
         close(file);
     }

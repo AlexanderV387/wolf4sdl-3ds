@@ -124,7 +124,7 @@ CP_itemtype SndMenu[] = {
 #ifdef JAPAN
 enum { CTL_MOUSEENABLE, CTL_JOYENABLE, CTL_JOY2BUTTONUNKNOWN, CTL_GAMEPADUNKONWN, CTL_MOUSESENS, CTL_CUSTOMIZE };
 #else
-enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS };
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_TOUCHTURN };
 #endif
 
 CP_itemtype CtlMenu[] = {
@@ -141,7 +141,8 @@ CP_itemtype CtlMenu[] = {
     {1, "Stick sensitivity", MouseSensitivity},
     {1, "Run: hold button", 0},           // text set by DrawCtlScreen
     {1, "Customize buttons", CustomControls},
-    {1, "HUD: bottom", 0}                 // text set by DrawCtlScreen
+    {1, "HUD: bottom", 0},                // text set by DrawCtlScreen
+    {1, "Touch turning", 0}
 #else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
@@ -1932,6 +1933,13 @@ CP_Control (int)
                 ShootSnd ();
                 WaitKeyUp ();
                 break;
+
+            case CTL_TOUCHTURN:
+                touchturn ^= 1;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
 #endif
 
             case CTL_JOYENABLE:
@@ -2125,6 +2133,7 @@ DrawCtlScreen (void)
     x = CTL_X + CtlItems.indent - 24;
     y = CTL_Y + 3;
     VWB_DrawPic (x, y, dualstick ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
+    VWB_DrawPic (x, y + 13 * CTL_TOUCHTURN, touchturn ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
 #else
     if (IN_JoyPresent())
         CtlMenu[CTL_JOYENABLE].active = 1;

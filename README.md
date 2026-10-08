@@ -7,6 +7,7 @@ Runs at full speed on New 3DS.
 ## Features
 
 - **Dual stick (New 3DS):** Circle Pad moves and strafes, C-stick turns. Classic mode (Circle Pad turns) can be selected in the menu.
+- **Touch turning:** drag left or right on the touch screen to turn, for a 3DS without C-stick (*Options > Control > Touch turning*).
 - **Three run modes:** stick fully pushed, hold the run button, or press once to sprint until you stop.
 - **Rebindable buttons:** every action can be bound to A, B, X, Y, L, R, ZL, ZR or SELECT from *Options > Control > Customize buttons*.
 - **Nintendo-style menus:** A accepts, B goes back, START leaves the menu. Quitting is only through *Quit*.

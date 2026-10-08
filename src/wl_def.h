@@ -1038,6 +1038,7 @@ extern  int         controlstrafe;                  // analog strafe, + is right
 extern  boolean     dualstick;
 enum { runmode_stick, runmode_hold, runmode_toggle, NUMRUNMODES };
 extern  int         runmode;
+extern  boolean     touchturn;
 extern  boolean     buttonstate[NUMBUTTONS];
 extern  objtype     objlist[MAXACTORS];
 extern  boolean     buttonheld[NUMBUTTONS];

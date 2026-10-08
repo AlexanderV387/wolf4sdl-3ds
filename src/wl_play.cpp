@@ -83,6 +83,7 @@ int controlx, controly;         // range from -100 to 100 per tic
 int controlstrafe;              // analog strafe, + is right (dual stick mode)
 boolean dualstick = true;       // Circle Pad moves and strafes, C-stick turns
 int runmode = runmode_hold;
+boolean touchturn = false;      // drag on the touch screen to turn (no C-stick)
 boolean buttonstate[NUMBUTTONS];
 
 int lastgamemusicoffset = 0;
@@ -538,6 +539,23 @@ void PollControls (void)
     }
     else
         controlx += cx * 10/(13-mouseadjustment);
+
+    // Touch turning: a horizontal drag on the touch screen turns, like a
+    // right stick or a mouse. A full 320 px swipe is about 80 degrees at
+    // the default sensitivity.
+    static boolean wastouching = false;
+    static int lasttouchx = 0;
+    if (touchturn && (kDown & KEY_TOUCH))
+    {
+        touchPosition touch;
+        hidTouchRead(&touch);
+        if (wastouching)
+            controlx += (touch.px - lasttouchx) * 40/(13-mouseadjustment);
+        lasttouchx = touch.px;
+        wastouching = true;
+    }
+    else
+        wastouching = false;
 
     //PollKeyboardMove ();
 

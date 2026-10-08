@@ -74,7 +74,7 @@
 #endif
 #define CTL_W   284
 #ifdef __3DS__
-#define CTL_H   73      // one more row: HUD position
+#define CTL_H   86      // two more rows: HUD position, touch turning
 #else
 #define CTL_H   60
 #endif
