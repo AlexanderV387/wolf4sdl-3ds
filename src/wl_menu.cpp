@@ -15,6 +15,7 @@
 #endif
 
 #include "wl_def.h"
+#include "n3ds_input.h"
 #pragma hdrstop
 
 extern int lastgamemusicoffset;
@@ -134,10 +135,17 @@ CP_itemtype CtlMenu[] = {
     {0, "", MouseSensitivity},
     {1, "", CustomControls}
 #else
+#ifdef __3DS__
+    {1, "Dual stick (C-stick)", 0},
+    {1, "Stick sensitivity", MouseSensitivity},
+    {0, "", 0},
+    {1, "Customize buttons", CustomControls}
+#else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
     {0, STR_JOYEN, 0},
     {1, STR_CUSTOM, CustomControls}
+#endif
 #endif
 };
 
@@ -392,9 +400,31 @@ static const char* const ScanNames[SDLK_LAST] =
 //
 ////////////////////////////////////////////////////////////////////
 void
+#ifdef __3DS__
+// START leaves the whole menu at once: each HandleMenu returns -1 until
+// US_ControlPanel is back at the top.
+static boolean menuquickexit = false;
+
+static void WaitStartUp (void)
+{
+    do
+    {
+        IN_ProcessEvents ();
+        hidScanInput ();
+        SDL_Delay (5);
+    }
+    while (hidKeysHeld () & KEY_START);
+}
+#endif
+
 US_ControlPanel (ScanCode scancode)
 {
     int which;
+
+#ifdef __3DS__
+    WaitStartUp ();             // the START that opened the menu must not close it
+    menuquickexit = false;
+#endif
 
 #ifdef _arch_dreamcast
     DC_StatusClearLCD();
@@ -541,6 +571,16 @@ US_ControlPanel (ScanCode scancode)
                 break;
 
             case -1:
+#ifdef __3DS__
+                if (menuquickexit)      // START: back to the game or demo
+                {
+                    StartGame = 1;
+                    if (!ingame)
+                        StartCPMusic (INTROSONG);
+                    VL_FadeOut (0, 255, 0, 0, 0, 10);
+                    break;
+                }
+#endif
             case quit:
                 CP_Quit (0);
                 break;
@@ -558,6 +598,11 @@ US_ControlPanel (ScanCode scancode)
         //
     }
     while (!StartGame);
+
+#ifdef __3DS__
+    WaitStartUp ();             // so the game does not see START and reopen it
+    menuquickexit = false;
+#endif
 
     //
     // DEALLOCATE EVERYTHING
@@ -1857,6 +1902,12 @@ CP_Control (int)
         switch (which)
         {
             case CTL_MOUSEENABLE:
+#ifdef __3DS__
+                dualstick ^= 1;
+                DrawCtlScreen ();
+                ShootSnd ();
+                break;
+#endif
                 mouseenabled ^= 1;
                 if(IN_IsInputGrabbed())
                     IN_CenterMouse();
@@ -2037,6 +2088,13 @@ DrawCtlScreen (void)
     WindowW = 400;
     SETFONTCOLOR (TEXTCOLOR, BKGDCOLOR);
 
+#ifdef __3DS__
+    DrawMenu (&CtlItems, CtlMenu);
+
+    x = CTL_X + CtlItems.indent - 24;
+    y = CTL_Y + 3;
+    VWB_DrawPic (x, y, dualstick ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
+#else
     if (IN_JoyPresent())
         CtlMenu[CTL_JOYENABLE].active = 1;
 
@@ -2063,6 +2121,7 @@ DrawCtlScreen (void)
         VWB_DrawPic (x, y, C_SELECTEDPIC);
     else
         VWB_DrawPic (x, y, C_NOTSELECTEDPIC);
+#endif
 
     //
     // PICK FIRST AVAILABLE SPOT
@@ -2096,9 +2155,169 @@ int8_t order[4] = { RUN, OPEN, FIRE, STRAFE };
 
 
 int
+#ifdef __3DS__
+////////////////////////////////////////////////////////////////////
+//
+// CUSTOMIZE 3DS BUTTONS
+//
+// One row per action with the buttons bound to it. A on a row waits
+// for a button and binds it to that action (taking it from any other).
+//
+////////////////////////////////////////////////////////////////////
+static const int n3dsactions[] =
+    { bt_attack, bt_use, bt_run, bt_strafe, bt_nextweapon, bt_prevweapon, bt_pause };
+#define N3DS_NUMACTIONS ((int) lengthof(n3dsactions))
+
+CP_itemtype N3dsCusMenu[] = {
+    {1, "Fire", 0},
+    {1, "Open / use", 0},
+    {1, "Run", 0},
+    {1, "Strafe", 0},
+    {1, "Next weapon", 0},
+    {1, "Prev weapon", 0},
+    {1, "Pause", 0},
+    {1, "Reset defaults", 0}
+};
+
+CP_iteminfo N3dsCusItems = { CENTERX - 136, 44, lengthof(N3dsCusMenu), 0, 24 };
+
+#define N3CUS_BINDX     (CENTERX + 8)
+#define N3CUS_FOOTERY   160
+
+static void N3DS_DrawBinding (int row, boolean prompt)
+{
+    int y = N3dsCusItems.y + row * 13;
+
+    VWB_Bar (N3CUS_BINDX, y, 128, 11, BKGDCOLOR);
+    PrintX = N3CUS_BINDX;
+    PrintY = y;
+    if (prompt)
+    {
+        SETFONTCOLOR (HIGHLIGHT, BKGDCOLOR);
+        US_Print ("Press a button");
+    }
+    else
+    {
+        boolean any = false;
+        SETFONTCOLOR (TEXTCOLOR, BKGDCOLOR);
+        for (int i = 0; i < N3DS_NUMBUTTONS; i++)
+        {
+            if (n3dsbind[i] == n3dsactions[row])
+            {
+                US_Print (n3dsbuttonname[i]);
+                US_Print ("  ");
+                any = true;
+            }
+        }
+        if (!any)
+        {
+            SETFONTCOLOR (DEACTIVE, BKGDCOLOR);
+            US_Print ("-");
+        }
+    }
+    SETFONTCOLOR (TEXTCOLOR, BKGDCOLOR);
+}
+
+static void N3DS_DrawFooter (const char *text)
+{
+    VWB_Bar (0, N3CUS_FOOTERY, screenWidth, 11, BORDCOLOR);
+    WindowX = 0;
+    WindowW = screenWidth;
+    PrintY = N3CUS_FOOTERY;
+    SETFONTCOLOR (READCOLOR, BORDCOLOR);
+    US_CPrint (text);
+    SETFONTCOLOR (TEXTCOLOR, BKGDCOLOR);
+}
+
+static void N3DS_DrawCustomScreen (void)
+{
+    ClearMScreen ();
+    WindowX = 0;
+    WindowW = screenWidth;
+    DrawStripes (10);
+    VWB_DrawPic (CENTERX - (160 - 80), 0, C_CUSTOMIZEPIC);
+    DrawWindow (CENTERX - 150, N3dsCusItems.y - 6, 300,
+                13 * lengthof(N3dsCusMenu) + 10, BKGDCOLOR);
+    DrawMenu (&N3dsCusItems, N3dsCusMenu);
+    for (int r = 0; r < N3DS_NUMACTIONS; r++)
+        N3DS_DrawBinding (r, false);
+    N3DS_DrawFooter ("A: assign   B: back   START: exit menu");
+    DrawMenuGun (&N3dsCusItems);
+    VW_UpdateScreen ();
+}
+
+static int N3DS_CustomControls (void)
+{
+    int which;
+
+    N3DS_DrawCustomScreen ();
+    MenuFadeIn ();
+    WaitKeyUp ();
+
+    do
+    {
+        which = HandleMenu (&N3dsCusItems, N3dsCusMenu, NULL);
+        if (which == N3DS_NUMACTIONS)           // reset defaults
+        {
+            N3DS_DefaultBindings ();
+            for (int r = 0; r < N3DS_NUMACTIONS; r++)
+                N3DS_DrawBinding (r, false);
+            ShootSnd ();
+            VW_UpdateScreen ();
+        }
+        else if (which >= 0)
+        {
+            int button;
+            boolean cancel = false;
+
+            N3DS_DrawBinding (which, true);
+            N3DS_DrawFooter ("Press the button for this action (START: cancel)");
+            VW_UpdateScreen ();
+            WaitKeyUp ();                       // release the A that chose the row
+
+            do
+            {
+                IN_ProcessEvents ();
+                SDL_Delay (5);
+                button = N3DS_HeldButton ();
+                if (hidKeysHeld () & KEY_START)
+                    cancel = true;
+            }
+            while (button < 0 && !cancel);
+
+            if (!cancel)
+            {
+                n3dsbind[button] = n3dsactions[which];
+                SD_PlaySound (SHOOTDOORSND);
+            }
+
+            for (int r = 0; r < N3DS_NUMACTIONS; r++)
+                N3DS_DrawBinding (r, false);
+            N3DS_DrawFooter ("A: assign   B: back   START: exit menu");
+            VW_UpdateScreen ();
+
+            // wait for release so the button does not act on the menu
+            while (N3DS_HeldButton () >= 0 || (hidKeysHeld () & KEY_START))
+            {
+                IN_ProcessEvents ();
+                SDL_Delay (5);
+            }
+        }
+    }
+    while (which >= 0);
+
+    MenuFadeOut ();
+    return 0;
+}
+#endif
+
 CustomControls (int)
 {
     int which;
+
+#ifdef __3DS__
+    return N3DS_CustomControls ();
+#endif
 
     DrawCustomScreen ();
     do
@@ -3235,6 +3454,11 @@ HandleMenu (CP_iteminfo * item_i, CP_itemtype * items, void (*routine) (int w))
     ControlInfo ci;
 
 
+#ifdef __3DS__
+    if (menuquickexit)
+        return -1;
+#endif
+
     which = item_i->curpos;
     x = item_i->x & -8;
     basey = item_i->y - 2;
@@ -3663,6 +3887,7 @@ ReadAnyControl (ControlInfo * ci)
         }
     }
 
+#ifndef __3DS__   // SDL numbers START as button 0 and A as 1; read them below instead
     if (joystickenabled && !mouseactive)
     {
 
@@ -3676,21 +3901,28 @@ ReadAnyControl (ControlInfo * ci)
             ci->button3 = jb & 8;
         }
     }
+#endif
 
     hidScanInput();
-    
-    u32 kDown = keysDown();
-    u32 kHeld = keysHeld();
-    if((kHeld & KEY_DOWN) || (kDown & KEY_DOWN))
+    u32 kHeld = hidKeysHeld();
+
+    // Nintendo layout: A accepts, B goes back, START leaves the menu
+    ci->button0 = (kHeld & KEY_A) != 0;
+    ci->button1 = (kHeld & (KEY_B | KEY_START)) != 0;
+    ci->button2 = ci->button3 = false;
+    if (kHeld & KEY_START)
+        menuquickexit = true;
+
+    if(kHeld & KEY_DOWN)
         ci->dir = dir_South;
-    
-    if((kHeld & KEY_UP) || (kDown & KEY_UP))
+
+    if(kHeld & KEY_UP)
         ci->dir = dir_North;
 
-    if((kHeld & KEY_LEFT) || (kDown & KEY_LEFT))
+    if(kHeld & KEY_LEFT)
         ci->dir = dir_West;
 
-    if((kHeld & KEY_RIGHT) || (kDown & KEY_RIGHT))
+    if(kHeld & KEY_RIGHT)
         ci->dir = dir_East;
 
 }

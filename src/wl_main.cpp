@@ -7,6 +7,7 @@
 #endif
 
 #include "wl_def.h"
+#include "n3ds_input.h"
 #pragma hdrstop
 #include "wl_atmos.h"
 #include <SDL/SDL_syswm.h>
@@ -177,6 +178,17 @@ void ReadConfig(void)
         read(file,&viewsize,sizeof(viewsize));
         read(file,&mouseadjustment,sizeof(mouseadjustment));
 
+        // 3DS settings, appended after the original fields
+        word n3dsmagic = 0;
+        if(read(file,&n3dsmagic,sizeof(n3dsmagic)) == sizeof(n3dsmagic) && n3dsmagic == 0x3d50)
+        {
+            read(file,&dualstick,sizeof(dualstick));
+            read(file,n3dsbind,sizeof(n3dsbind));
+            for(int i = 0; i < N3DS_NUMBUTTONS; i++)
+                if(n3dsbind[i] < bt_nobutton || n3dsbind[i] >= NUMBUTTONS)
+                    n3dsbind[i] = bt_nobutton;
+        }
+
         close(file);
 
         if ((sd == sdm_AdLib || sm == smm_AdLib) && !AdLibPresent
@@ -196,6 +208,9 @@ void ReadConfig(void)
 
         if (!MousePresent)
             mouseenabled = false;
+#ifdef __3DS__
+        mouseenabled = false;   // the touch screen toggles the bottom screen instead
+#endif
         if (!IN_JoyPresent())
             joystickenabled = false;
 
@@ -230,8 +245,10 @@ noconfig:
         else
             sds = sds_Off;
 
+#ifndef __3DS__
         if (MousePresent)
             mouseenabled = true;
+#endif
 
         if (IN_JoyPresent())
             joystickenabled = true;
@@ -293,6 +310,11 @@ void WriteConfig(void)
 
         write(file,&viewsize,sizeof(viewsize));
         write(file,&mouseadjustment,sizeof(mouseadjustment));
+
+        word n3dsmagic = 0x3d50;
+        write(file,&n3dsmagic,sizeof(n3dsmagic));
+        write(file,&dualstick,sizeof(dualstick));
+        write(file,n3dsbind,sizeof(n3dsbind));
 
         close(file);
     }
@@ -1976,6 +1998,8 @@ void CheckParameters(int argc, char *argv[])
 int main (int argc, char *argv[])
 {
     osSetSpeedupEnable(1);
+    N3DS_DefaultBindings();     // ReadConfig overrides them if saved
+    N3DS_InitBottomScreen();
     consoleDebugInit(debugDevice_CONSOLE);
     /* emulator
     consoleDebugInit(debugDevice_SVC);

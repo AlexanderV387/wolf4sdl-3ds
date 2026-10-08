@@ -1,6 +1,7 @@
 // WL_PLAY.C
 
 #include "wl_def.h"
+#include "n3ds_input.h"
 #pragma hdrstop
 
 #include "wl_cloudsky.h"
@@ -461,31 +462,8 @@ void PollControls (void)
 
     u32 kDown = hidKeysHeld();
 
-    //u32 kToggle = hidKeysDown(CONTROLLER_P1_AUTO);
-
-    if((kDown & KEY_A) || (kDown & KEY_ZR))
-        buttonstate[bt_attack] = true;
-
-    if((kDown & KEY_B))
-        buttonstate[bt_use] = true;
-
-    if((kDown & KEY_X))
-        buttonstate[bt_strafe] = true;
-
-    if((kDown & KEY_Y) || (kDown & KEY_ZL))
-        buttonstate[bt_run] = true;
-
-    if((kDown & KEY_R))
-        buttonstate[bt_nextweapon] = true;
-
-    if((kDown & KEY_L))
-        buttonstate[bt_prevweapon] = true;
-
-    if((kDown & KEY_START))
-        buttonstate[bt_esc] = true;
-
-    if((kDown & KEY_SELECT))
-        buttonstate[bt_pause] = true;
+    N3DS_PollButtons ();            // buttons -> actions, as set in the menu
+    N3DS_PollBottomScreenToggle ();
 
     /*if (mouseenabled && IN_IsInputGrabbed())
         PollMouseButtons ();
