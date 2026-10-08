@@ -99,3 +99,29 @@ jobs:
         with:
           name: wolf4sdl-${{ matrix.variant }}-cia
           path: wolf4sdl-${{ matrix.variant }}.cia
+
+  release:
+    # Push a tag like v1.0.0 to publish a GitHub release with every build.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, cia]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: wolf4sdl-*
+          path: dist
+          merge-multiple: true
+
+      - run: ls -la dist
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Wolf4SDL-3DS ${{ github.ref_name }}
+          body_path: RELEASE_NOTES.md
+          files: |
+            dist/*.cia
+            dist/*.3dsx
