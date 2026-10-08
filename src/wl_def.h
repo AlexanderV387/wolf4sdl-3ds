@@ -1036,6 +1036,8 @@ extern  int             lastgamemusicoffset;
 extern  int         controlx,controly;              // range from -100 to 100
 extern  int         controlstrafe;                  // analog strafe, + is right
 extern  boolean     dualstick;
+enum { runmode_stick, runmode_hold, runmode_toggle, NUMRUNMODES };
+extern  int         runmode;
 extern  boolean     buttonstate[NUMBUTTONS];
 extern  objtype     objlist[MAXACTORS];
 extern  boolean     buttonheld[NUMBUTTONS];

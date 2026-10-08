@@ -81,6 +81,7 @@ memptr demobuffer;
 int controlx, controly;         // range from -100 to 100 per tic
 int controlstrafe;              // analog strafe, + is right (dual stick mode)
 boolean dualstick = true;       // Circle Pad moves and strafes, C-stick turns
+int runmode = runmode_hold;
 boolean buttonstate[NUMBUTTONS];
 
 int lastgamemusicoffset = 0;
@@ -475,17 +476,40 @@ void PollControls (void)
 // get movements
 //
 
-    // keyboard movement code
-    int delta = buttonstate[bt_run] ? RUNMOVE * tics : BASEMOVE * tics;
+    circlePosition cpos;
+	hidCircleRead(&cpos);
+    int cx = 0;                     // classic mode: Circle Pad X turns
+	if (abs(cpos.dx) > 32) 
+        cx = (cpos.dx) >> 1;
 
-    /*if((kDown & KEY_DUP))
-        buttonstate[bt_moveforward] = true;
-    if((kDown & KEY_DDOWN))
-        buttonstate[bt_movebackward] = true;
-    if((kDown & KEY_DLEFT))
-        buttonstate[bt_turnleft] = true;
-    if((kDown & KEY_DRIGHT))
-        buttonstate[bt_turnright] = true;*/
+    int padx = 0, pady = 0;         // Circle Pad tilt, dead zone removed
+    if (abs(cpos.dx) > 32)
+        padx = cpos.dx > 150 ? 150 : (cpos.dx < -150 ? -150 : cpos.dx);
+    if (abs(cpos.dy) > 32)
+        pady = cpos.dy > 150 ? 150 : (cpos.dy < -150 ? -150 : cpos.dy);
+
+    //
+    // run mode (Options > Control > Run)
+    //  stick:  the Circle Pad runs when fully pushed; the run button also runs
+    //  hold:   run while the run button is held
+    //  toggle: one press runs until you stop moving, like modern FPS sprint
+    //
+    static boolean runlatched = false, wasmoving = false;
+    boolean moving = padx || pady ||
+        (kDown & (KEY_DUP | KEY_DDOWN | KEY_DLEFT | KEY_DRIGHT));
+    if (runmode == runmode_toggle)
+    {
+        if (buttonstate[bt_run] && !buttonheld[bt_run])
+            runlatched = true;
+        if (wasmoving && !moving)
+            runlatched = false;
+        if (runlatched)
+            buttonstate[bt_run] = true;
+    }
+    wasmoving = moving;
+
+    // D-pad movement code
+    int delta = buttonstate[bt_run] ? RUNMOVE * tics : BASEMOVE * tics;
 
     if((kDown & KEY_DUP))
         controly -= delta;
@@ -496,21 +520,9 @@ void PollControls (void)
     if((kDown & KEY_DRIGHT))
         controlx += delta;
 
-    circlePosition cpos;
-    int cx = 0;                     // classic mode: Circle Pad X turns
-	hidCircleRead(&cpos);
-	if (abs(cpos.dx) > 32) 
-        cx = (cpos.dx) >> 1;
-
-    // Circle Pad movement: fully pushed is walking speed, and the run
-    // button turns it into running speed, as with the D-pad. Scaled by tics
-    // so the speed does not depend on the frame rate.
-    int padspeed = buttonstate[bt_run] ? RUNMOVE : BASEMOVE;
-    int padx = 0, pady = 0;
-    if (abs(cpos.dx) > 32)
-        padx = cpos.dx > 150 ? 150 : (cpos.dx < -150 ? -150 : cpos.dx);
-    if (abs(cpos.dy) > 32)
-        pady = cpos.dy > 150 ? 150 : (cpos.dy < -150 ? -150 : cpos.dy);
+    // Circle Pad movement scales with the tilt, up to walking or running
+    // speed, times tics so it does not depend on the frame rate.
+    int padspeed = (runmode == runmode_stick || buttonstate[bt_run]) ? RUNMOVE : BASEMOVE;
 
     controly -= pady * padspeed * (int) tics / 150;
 

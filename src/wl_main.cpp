@@ -184,6 +184,9 @@ void ReadConfig(void)
         {
             read(file,&dualstick,sizeof(dualstick));
             read(file,n3dsbind,sizeof(n3dsbind));
+            if(read(file,&runmode,sizeof(runmode)) != sizeof(runmode)
+                    || runmode < 0 || runmode >= NUMRUNMODES)
+                runmode = runmode_hold;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
                 if(n3dsbind[i] < bt_nobutton || n3dsbind[i] >= NUMBUTTONS)
                     n3dsbind[i] = bt_nobutton;
@@ -315,6 +318,7 @@ void WriteConfig(void)
         write(file,&n3dsmagic,sizeof(n3dsmagic));
         write(file,&dualstick,sizeof(dualstick));
         write(file,n3dsbind,sizeof(n3dsbind));
+        write(file,&runmode,sizeof(runmode));
 
         close(file);
     }

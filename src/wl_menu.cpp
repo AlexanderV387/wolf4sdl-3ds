@@ -138,7 +138,7 @@ CP_itemtype CtlMenu[] = {
 #ifdef __3DS__
     {1, "Dual stick (C-stick)", 0},
     {1, "Stick sensitivity", MouseSensitivity},
-    {0, "", 0},
+    {1, "Run: hold button", 0},           // text set by DrawCtlScreen
     {1, "Customize buttons", CustomControls}
 #else
     {0, STR_MOUSEEN, 0},
@@ -1917,6 +1917,12 @@ CP_Control (int)
                 break;
 
             case CTL_JOYENABLE:
+#ifdef __3DS__
+                runmode = (runmode + 1) % NUMRUNMODES;
+                DrawCtlScreen ();
+                ShootSnd ();
+                break;
+#endif
                 joystickenabled ^= 1;
                 DrawCtlScreen ();
                 CusItems.curpos = -1;
@@ -2089,6 +2095,9 @@ DrawCtlScreen (void)
     SETFONTCOLOR (TEXTCOLOR, BKGDCOLOR);
 
 #ifdef __3DS__
+    static const char *runnames[NUMRUNMODES] =
+        { "Run: stick fully pushed", "Run: hold button", "Run: press once" };
+    strcpy (CtlMenu[CTL_JOYENABLE].string, runnames[runmode]);
     DrawMenu (&CtlItems, CtlMenu);
 
     x = CTL_X + CtlItems.indent - 24;
