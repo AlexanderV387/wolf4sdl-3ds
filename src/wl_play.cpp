@@ -2,6 +2,7 @@
 
 #include "wl_def.h"
 #include "n3ds_input.h"
+#include "n3ds_hud.h"
 #pragma hdrstop
 
 #include "wl_cloudsky.h"
@@ -464,7 +465,6 @@ void PollControls (void)
     u32 kDown = hidKeysHeld();
 
     N3DS_PollButtons ();            // buttons -> actions, as set in the menu
-    N3DS_PollBottomScreenToggle ();
 
     /*if (mouseenabled && IN_IsInputGrabbed())
         PollMouseButtons ();
@@ -1383,6 +1383,8 @@ void PlayLoop (void)
             DoActor (obj);
 
         UpdatePaletteShifts ();
+
+        N3DS_DrawHud ();                // status bar on the bottom screen
 
         ThreeDRefresh ();
 

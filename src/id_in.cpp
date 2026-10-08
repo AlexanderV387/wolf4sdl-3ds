@@ -18,6 +18,7 @@
 //
 
 #include "wl_def.h"
+#include "n3ds_input.h"
 
 
 /*
@@ -367,6 +368,7 @@ void IN_WaitAndProcessEvents()
         processEvent(&event);
     }
     while(SDL_PollEvent(&event));
+    N3DS_PollBottomScreenToggle();
 }
 
 void IN_ProcessEvents()
@@ -377,6 +379,7 @@ void IN_ProcessEvents()
     {
         processEvent(&event);
     }
+    N3DS_PollBottomScreenToggle();  // a tap turns the bottom screen off/on
 }
 
 

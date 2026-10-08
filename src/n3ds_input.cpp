@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "wl_def.h"
 #include "n3ds_input.h"
+#include "n3ds_hud.h"
 
 int n3dsbind[N3DS_NUMBUTTONS];
 
@@ -98,6 +99,15 @@ static void AptHook (APT_HookType hook, void *)
     }
 }
 
+void N3DS_BottomScreenOn (void)
+{
+    if (!bottomon)
+    {
+        bottomon = true;
+        SetBottomBacklight (true);
+    }
+}
+
 static void RestoreBottomScreen (void)
 {
     if (!bottomon)
@@ -115,7 +125,8 @@ void N3DS_PollBottomScreenToggle (void)
     static bool wastouching = false;
     bool touching = (hidKeysHeld () & KEY_TOUCH) != 0;
 
-    if (touching && !wastouching)
+    // In full screen view the bottom screen shows the HUD: keep it on.
+    if (touching && !wastouching && (!bottomon || !N3DS_HudVisible ()))
     {
         bottomon = !bottomon;
         SetBottomBacklight (bottomon);

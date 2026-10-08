@@ -1,4 +1,5 @@
 #include "wl_def.h"
+#include "n3ds_hud.h"
 
 
 pictabletype	*pictable;
@@ -119,6 +120,7 @@ void VW_MeasurePropString (const char *string, word *width, word *height)
 void VH_UpdateScreen()
 {
 	SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+	N3DS_UpdateBottom(screen);
 	SDL_Flip(screen);
 }
 

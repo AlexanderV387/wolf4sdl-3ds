@@ -2004,7 +2004,7 @@ int main (int argc, char *argv[])
     osSetSpeedupEnable(1);
     N3DS_DefaultBindings();     // ReadConfig overrides them if saved
     N3DS_InitBottomScreen();
-    consoleDebugInit(debugDevice_CONSOLE);
+    consoleDebugInit(debugDevice_NULL);    // no text console: the bottom screen shows the HUD
     /* emulator
     consoleDebugInit(debugDevice_SVC);
 	stdout = stderr; */

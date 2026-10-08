@@ -36,5 +36,6 @@ void N3DS_PollButtons (void);          // sets buttonstate[] from the bindings
 
 void N3DS_InitBottomScreen (void);
 void N3DS_PollBottomScreenToggle (void);  // a tap on the touch screen turns it off/on
+void N3DS_BottomScreenOn (void);          // e.g. when the HUD appears
 
 #endif

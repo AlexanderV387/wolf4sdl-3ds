@@ -572,7 +572,10 @@ US_ControlPanel (ScanCode scancode)
 
             case -1:
 #ifdef __3DS__
-                if (menuquickexit)      // START: back to the game or demo
+                // START, or B during a game: back to the game (or demo).
+                // B on the title menu does nothing: quitting is only
+                // through "Quit", so a stray B + A cannot close the game.
+                if (menuquickexit || ingame)
                 {
                     StartGame = 1;
                     if (!ingame)
@@ -580,6 +583,9 @@ US_ControlPanel (ScanCode scancode)
                     VL_FadeOut (0, 255, 0, 0, 0, 10);
                     break;
                 }
+                DrawMainMenu ();
+                MenuFadeIn ();
+                break;
 #endif
             case quit:
                 CP_Quit (0);
