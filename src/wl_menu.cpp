@@ -399,7 +399,6 @@ static const char* const ScanNames[SDLK_LAST] =
 // Wolfenstein Control Panel!  Ta Da!
 //
 ////////////////////////////////////////////////////////////////////
-void
 #ifdef __3DS__
 // START leaves the whole menu at once: each HandleMenu returns -1 until
 // US_ControlPanel is back at the top.
@@ -417,6 +416,7 @@ static void WaitStartUp (void)
 }
 #endif
 
+void
 US_ControlPanel (ScanCode scancode)
 {
     int which;
@@ -2163,7 +2163,6 @@ char mbarray[4][3] = { "b0", "b1", "b2", "b3" };
 int8_t order[4] = { RUN, OPEN, FIRE, STRAFE };
 
 
-int
 #ifdef __3DS__
 ////////////////////////////////////////////////////////////////////
 //
@@ -2320,6 +2319,7 @@ static int N3DS_CustomControls (void)
 }
 #endif
 
+int
 CustomControls (int)
 {
     int which;
