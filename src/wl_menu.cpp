@@ -16,6 +16,7 @@
 
 #include "wl_def.h"
 #include "n3ds_input.h"
+#include "n3ds_hud.h"
 #pragma hdrstop
 
 extern int lastgamemusicoffset;
@@ -123,7 +124,7 @@ CP_itemtype SndMenu[] = {
 #ifdef JAPAN
 enum { CTL_MOUSEENABLE, CTL_JOYENABLE, CTL_JOY2BUTTONUNKNOWN, CTL_GAMEPADUNKONWN, CTL_MOUSESENS, CTL_CUSTOMIZE };
 #else
-enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE };
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS };
 #endif
 
 CP_itemtype CtlMenu[] = {
@@ -139,7 +140,8 @@ CP_itemtype CtlMenu[] = {
     {1, "Dual stick (C-stick)", 0},
     {1, "Stick sensitivity", MouseSensitivity},
     {1, "Run: hold button", 0},           // text set by DrawCtlScreen
-    {1, "Customize buttons", CustomControls}
+    {1, "Customize buttons", CustomControls},
+    {1, "HUD: bottom", 0}                 // text set by DrawCtlScreen
 #else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
@@ -1923,6 +1925,15 @@ CP_Control (int)
                 ShootSnd ();
                 break;
 
+#ifdef __3DS__
+            case CTL_HUDPOS:
+                hudpos = (hudpos + 1) % NUMHUDPOS;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
+#endif
+
             case CTL_JOYENABLE:
 #ifdef __3DS__
                 runmode = (runmode + 1) % NUMRUNMODES;
@@ -2106,6 +2117,9 @@ DrawCtlScreen (void)
     static const char *runnames[NUMRUNMODES] =
         { "Run: stick fully pushed", "Run: hold button", "Run: press once" };
     strcpy (CtlMenu[CTL_JOYENABLE].string, runnames[runmode]);
+    static const char *hudnames[NUMHUDPOS] =
+        { "HUD: top of bottom screen", "HUD: middle", "HUD: bottom" };
+    strcpy (CtlMenu[CTL_HUDPOS].string, hudnames[hudpos]);
     DrawMenu (&CtlItems, CtlMenu);
 
     x = CTL_X + CtlItems.indent - 24;

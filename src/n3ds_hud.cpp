@@ -6,6 +6,7 @@
 
 static SDL_Surface *hud = NULL;     // same size as screenBuffer, 8 bit
 static boolean hudready = false;
+int hudpos = hudpos_bottom;
 
 boolean N3DS_HudVisible (void)
 {
@@ -52,10 +53,11 @@ void N3DS_DrawHud (void)
     hudready = true;
 }
 
-void N3DS_UpdateBottom (SDL_Surface *dest)
+static void UpdateBottom (SDL_Surface *dest)
 {
     static int laststate = -1;
-    int state = N3DS_HudVisible () ? 1 : 0;
+    // the state includes the position so moving the HUD clears the old one
+    int state = N3DS_HudVisible () ? 1 + hudpos : 0;
 
     if (dest->h < N3DS_VIDEO_HEIGHT)
         return;
@@ -75,8 +77,15 @@ void N3DS_UpdateBottom (SDL_Surface *dest)
         SDL_Rect src = { (Sint16) ((screenWidth - scaleFactor*320) / 2),
                          (Sint16) (screenHeight - scaleFactor*STATUSLINES),
                          (Uint16) (scaleFactor*320), (Uint16) (scaleFactor*STATUSLINES) };
-        SDL_Rect dst = { (Sint16) ((dest->w - 320) / 2),
-                         (Sint16) (screenHeight + (240 - scaleFactor*STATUSLINES) / 2), 0, 0 };
+        int freerows = 240 - scaleFactor*STATUSLINES;
+        int y = hudpos == hudpos_top ? 0 : (hudpos == hudpos_middle ? freerows / 2 : freerows);
+        SDL_Rect dst = { (Sint16) ((dest->w - 320) / 2), (Sint16) (screenHeight + y), 0, 0 };
         SDL_BlitSurface (hud, &src, dest, &dst);
     }
+}
+
+void N3DS_Flip (SDL_Surface *dest)
+{
+    UpdateBottom (dest);
+    SDL_Flip (dest);
 }

@@ -8,6 +8,7 @@
 
 #include "wl_def.h"
 #include "n3ds_input.h"
+#include "n3ds_hud.h"
 #pragma hdrstop
 #include "wl_atmos.h"
 #include <SDL/SDL_syswm.h>
@@ -187,6 +188,9 @@ void ReadConfig(void)
             if(read(file,&runmode,sizeof(runmode)) != sizeof(runmode)
                     || runmode < 0 || runmode >= NUMRUNMODES)
                 runmode = runmode_hold;
+            if(read(file,&hudpos,sizeof(hudpos)) != sizeof(hudpos)
+                    || hudpos < 0 || hudpos >= NUMHUDPOS)
+                hudpos = hudpos_bottom;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
                 if(n3dsbind[i] < bt_nobutton || n3dsbind[i] >= NUMBUTTONS)
                     n3dsbind[i] = bt_nobutton;
@@ -319,6 +323,7 @@ void WriteConfig(void)
         write(file,&dualstick,sizeof(dualstick));
         write(file,n3dsbind,sizeof(n3dsbind));
         write(file,&runmode,sizeof(runmode));
+        write(file,&hudpos,sizeof(hudpos));
 
         close(file);
     }

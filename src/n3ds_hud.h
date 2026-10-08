@@ -12,8 +12,11 @@
 
 #define N3DS_VIDEO_HEIGHT   480     // top screen rows + bottom screen rows
 
+enum { hudpos_top, hudpos_middle, hudpos_bottom, NUMHUDPOS };
+extern int hudpos;                              // where on the bottom screen
+
 void    N3DS_DrawHud (void);                    // once per frame in PlayLoop
-void    N3DS_UpdateBottom (SDL_Surface *dest);  // before each SDL_Flip
+void    N3DS_Flip (SDL_Surface *dest);          // use instead of SDL_Flip(screen)
 boolean N3DS_HudVisible (void);
 
 #endif

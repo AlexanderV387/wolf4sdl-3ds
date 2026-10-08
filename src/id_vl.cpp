@@ -205,7 +205,7 @@ void VL_SetColor	(int color, int red, int green, int blue)
     {
         SDL_SetPalette(curSurface, SDL_LOGPAL, &col, color, 1);
         SDL_BlitSurface(curSurface, NULL, screen, NULL);
-        SDL_Flip(screen);
+        N3DS_Flip(screen);
     }
 }
 
@@ -249,7 +249,7 @@ void VL_SetPalette (SDL_Color *palette, bool forceupdate)
         if(forceupdate)
         {
             SDL_BlitSurface(curSurface, NULL, screen, NULL);
-            SDL_Flip(screen);
+            N3DS_Flip(screen);
         }
     }
 }

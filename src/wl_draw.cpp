@@ -1,6 +1,7 @@
 // WL_DRAW.C
 
 #include "wl_def.h"
+#include "n3ds_hud.h"
 #pragma hdrstop
 
 #include "wl_cloudsky.h"
@@ -1648,7 +1649,7 @@ void    ThreeDRefresh (void)
         //US_PrintSigned(fps);
        // US_Print(" fps");
         SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
-        SDL_Flip(screen);
+        N3DS_Flip(screen);
     }
 
     //fps_frames++;
