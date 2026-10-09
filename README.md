@@ -20,20 +20,24 @@ Runs at full speed on New 3DS.
 
 ## Installing
 
-Download the builds from the [releases](../../releases) or from the latest successful run in [Actions](../../actions) (branch `n3ds`).
+Download `wolf4sdl-all` from the [releases](../../releases):
 
-| Build | Game data | Folder on the SD card |
+- `wolf4sdl-all.cia`: install with FBI; it appears on the HOME Menu.
+- `wolf4sdl-all.3dsx`: copy to `/3ds/` and open it from the Homebrew Launcher.
+
+It plays any of these games; copy the data of the ones you have. Game data is not included: use your own copy.
+
+| Game | Files | Folder on the SD card |
 |---|---|---|
-| `wolf4sdl-all` | All of the below: a menu lists the games whose data is on the SD card (it starts directly when there is only one); Quit goes back to it | Both folders |
-| `wolf4sdl-wolf3d` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
-| `wolf4sdl-wolf3d-shareware` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
-| `wolf4sdl-sod` | Spear of Destiny: `*.sod`, plus `*.sd2` / `*.sd3` for the mission packs | `/3ds/wolf4sdl/sod/` |
-| `wolf4sdl-sod-demo` | Spear of Destiny demo: `*.sdm` | `/3ds/wolf4sdl/sod/` |
+| Wolfenstein 3D v1.4 (Activision, Steam, GOG) | `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
+| Wolfenstein 3D shareware v1.4 (free) | `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
+| Spear of Destiny (Steam, GOG) | `*.sod` | `/3ds/wolf4sdl/sod/` |
+| Spear of Destiny mission packs 2 and 3 | `*.sd2`, `*.sd3` | `/3ds/wolf4sdl/sod/` |
+| Spear of Destiny demo (free) | `*.sdm` | `/3ds/wolf4sdl/sod/` |
 
-- `.cia`: install with FBI; it appears on the HOME Menu.
-- `.3dsx`: copy to `/3ds/` and open it from the Homebrew Launcher.
+With more than one game on the SD card, a menu chooses one at startup, and Quit goes back to it (in the `.cia`). With only one, it starts directly.
 
-Game data is not included: use your own copy.
+Builds for a single game (`wolf4sdl-wolf3d`, `wolf4sdl-wolf3d-shareware`, `wolf4sdl-sod`, `wolf4sdl-sod-demo`, each with its own HOME Menu icon) are still made by every run in [Actions](../../actions) (branch `n3ds`); releases up to 1.4.0 include them too.
 
 ## Default controls
 

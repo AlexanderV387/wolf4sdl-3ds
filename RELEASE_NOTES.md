@@ -1,5 +1,10 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.4.1
+
+- One download for every game: `wolf4sdl-all` plays whichever games are on your SD card (with only one, it starts it directly). The separate builds are no longer in the releases; they are still built in [Actions](https://github.com/AlexanderV387/wolf4sdl-3ds/actions) (branch `n3ds`).
+- New HOME Menu banner for `wolf4sdl-all`.
+
 ## New in 1.4.0
 
 - **Map on the bottom screen:** a map of what you have seen in the level (floors, walls and doors), centered on you, with your direction. The original game has none. In full screen view it shares the bottom screen with the status bar (above it by default, or below); with a smaller view the status bar is on the top screen and the map fills the bottom screen. It can be turned off in *Options > Control*. A map loaded from a saved game starts empty.
@@ -40,15 +45,22 @@ Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls,
 
 ## Downloads
 
-| File | Game data | Folder on the SD card |
-|---|---|---|
-| `wolf4sdl-all.cia` / `.3dsx` | Any of the below (one menu for all) | Both folders |
-| `wolf4sdl-wolf3d.cia` / `.3dsx` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
-| `wolf4sdl-wolf3d-shareware.cia` / `.3dsx` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
-| `wolf4sdl-sod.cia` / `.3dsx` | Spear of Destiny: `*.sod` (mission packs: `*.sd2`, `*.sd3`) | `/3ds/wolf4sdl/sod/` |
-| `wolf4sdl-sod-demo.cia` / `.3dsx` | Spear of Destiny demo: `*.sdm` | `/3ds/wolf4sdl/sod/` |
+| File | Use |
+|---|---|
+| `wolf4sdl-all.cia` | Install with FBI; it appears on the HOME Menu |
+| `wolf4sdl-all.3dsx` | Copy to `/3ds/` and open it from the Homebrew Launcher |
 
-Install the `.cia` with FBI, or copy the `.3dsx` to `/3ds/` and open it from the Homebrew Launcher. Game data is not included: use your own copy.
+It plays any of these games; copy the data of the ones you have (game data is not included: use your own copy):
+
+| Game | Files | Folder on the SD card |
+|---|---|---|
+| Wolfenstein 3D v1.4 (Activision, Steam, GOG) | `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
+| Wolfenstein 3D shareware v1.4 (free) | `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
+| Spear of Destiny (Steam, GOG) | `*.sod` | `/3ds/wolf4sdl/sod/` |
+| Spear of Destiny mission packs 2 and 3 | `*.sd2`, `*.sd3` | `/3ds/wolf4sdl/sod/` |
+| Spear of Destiny demo (free) | `*.sdm` | `/3ds/wolf4sdl/sod/` |
+
+With more than one game on the SD card, a menu chooses one at startup, and Quit goes back to it (in the `.cia`). With only one, it starts directly.
 
 ## What's new compared to the original 3DS port
 

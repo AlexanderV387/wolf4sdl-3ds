@@ -153,7 +153,9 @@ jobs:
 
   release:
     # A commit on n3ds whose message contains [release] publishes a GitHub
-    # release tagged v<VERSION> with every build (GitHub creates the tag).
+    # release tagged v<VERSION> with wolf4sdl-all, which plays every game
+    # (GitHub creates the tag). The single-game builds stay in the run's
+    # artifacts.
     if: github.ref == 'refs/heads/n3ds' && contains(github.event.head_commit.message, '[release]')
     needs: [build, all, cia]
     runs-on: ubuntu-latest
@@ -180,5 +182,5 @@ jobs:
           name: Wolf4SDL-3DS ${{ steps.version.outputs.tag }}
           body_path: RELEASE_NOTES.md
           files: |
-            dist/*.cia
-            dist/*.3dsx
+            dist/wolf4sdl-all.cia
+            dist/wolf4sdl-all.3dsx
