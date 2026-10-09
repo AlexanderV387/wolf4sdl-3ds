@@ -1,5 +1,12 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.4.0
+
+- **Map on the bottom screen:** a map of what you have seen in the level (floors, walls and doors), centered on you, with your direction. The original game has none. In full screen view it shares the bottom screen with the status bar (above it by default, or below); with a smaller view the status bar is on the top screen and the map fills the bottom screen. It can be turned off in *Options > Control*. A map loaded from a saved game starts empty.
+- **60 FPS:** the game ran at its own 70 Hz while the screen showed 60 of those frames unevenly. Each frame now waits for the screen.
+- **FPS counter** (off by default), small, in a corner of the bottom screen: *Options > Control > FPS counter*.
+- Saving no longer freezes for seconds: on the SD card, writing a new or emptied file sometimes took 8 seconds; saved games and the last game played are now written over in place.
+
 ## New in 1.3.1
 
 - Spear of Destiny title screen centered, like Wolfenstein 3D's (it was in the top left corner).

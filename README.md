@@ -1,6 +1,6 @@
 # Wolf4SDL-3DS
 
-Port of Wolfenstein 3D and Spear of Destiny to the Nintendo 3DS, based on [Wolf4SDL](https://github.com/hax0kartik/wolf4sdl-3ds) by hax0kartik. This fork (branch `n3ds`) adds New 3DS controls, a HUD on the bottom screen and `.cia` builds.
+Port of Wolfenstein 3D and Spear of Destiny to the Nintendo 3DS, based on [Wolf4SDL](https://github.com/hax0kartik/wolf4sdl-3ds) by hax0kartik. This fork (branch `n3ds`) adds New 3DS controls, a HUD and a map on the bottom screen, 60 FPS and `.cia` builds.
 
 Runs at full speed on New 3DS.
 
@@ -11,8 +11,9 @@ Runs at full speed on New 3DS.
 - **Three run modes:** stick fully pushed, hold the run button, or press once to sprint until you stop.
 - **Rebindable buttons:** every action can be bound to A, B, X, Y, L, R, ZL, ZR or SELECT from *Options > Control > Customize buttons*.
 - **Nintendo-style menus:** A accepts, B goes back, START leaves the menu. Quitting is only through *Quit*.
-- **HUD on the bottom screen** in full screen view, at the top, middle or bottom of it.
-- A tap on the touch screen turns the bottom screen off or on (except while it shows the HUD).
+- **60 FPS** on New 3DS, with an optional small FPS counter.
+- **HUD and map on the bottom screen:** in full screen view, the status bar and a map of what you have seen (status bar above or below it); with a smaller view, the map fills the bottom screen. The map can be turned off; without it, the status bar goes at the top, middle or bottom of the bottom screen.
+- A tap on the touch screen turns the bottom screen off or on (except while it shows the HUD or the map).
 - No DOS memory check screen at startup.
 - **Spear of Destiny mission packs:** if the `sod` folder has more than one mission (*Return to Danger* `*.sd2`, *Ultimate Challenge* `*.sd3`), a menu at startup lets you choose. Each mission keeps its own config and savegames.
 - `.3dsx` and `.cia` builds for Wolfenstein 3D (full and shareware) and Spear of Destiny (full and demo).
