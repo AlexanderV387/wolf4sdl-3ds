@@ -1660,12 +1660,19 @@ static void DemoLoop()
             CA_CacheGrChunk (TITLEPALETTE);
             VL_ConvertPalette(grsegs[TITLEPALETTE], pal, 256);
 
+#ifdef __3DS__
+            // Centered on the 400x240 screen, like Wolfenstein's title.
+            const int titlex = (screenWidth - 320) / 2, titley = (screenHeight - 200) / 2;
+            VWB_Bar (0, 0, screenWidth, screenHeight, 0);
+#else
+            const int titlex = 0, titley = 0;
+#endif
             CA_CacheGrChunk (TITLE1PIC);
-            VWB_DrawPic (0,0,TITLE1PIC);
+            VWB_DrawPic (titlex,titley,TITLE1PIC);
             UNCACHEGRCHUNK (TITLE1PIC);
 
             CA_CacheGrChunk (TITLE2PIC);
-            VWB_DrawPic (0,80,TITLE2PIC);
+            VWB_DrawPic (titlex,titley + 80,TITLE2PIC);
             UNCACHEGRCHUNK (TITLE2PIC);
             VW_UpdateScreen ();
             VL_FadeIn(0,255,pal,30);
@@ -1686,7 +1693,12 @@ static void DemoLoop()
 // credits page
 //
           printf("SHOW CREDITS\n");
+#ifdef __3DS__
+            VWB_Bar (0, 0, screenWidth, screenHeight, 0);
+            CA_CacheScreenxy (CREDITSPIC, (screenWidth - 320) / 2, (screenHeight - 200) / 2);
+#else
             CA_CacheScreen (CREDITSPIC);
+#endif
             VW_UpdateScreen();
             VW_FadeIn ();
             if (IN_UserInput(TickBase*10))
