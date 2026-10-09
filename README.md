@@ -14,6 +14,7 @@ Runs at full speed on New 3DS.
 - **HUD on the bottom screen** in full screen view, at the top, middle or bottom of it.
 - A tap on the touch screen turns the bottom screen off or on (except while it shows the HUD).
 - No DOS memory check screen at startup.
+- **Spear of Destiny mission packs:** if the `sod` folder has more than one mission (*Return to Danger* `*.sd2`, *Ultimate Challenge* `*.sd3`), a menu at startup lets you choose. Each mission keeps its own config and savegames.
 - `.3dsx` and `.cia` builds for Wolfenstein 3D (full and shareware) and Spear of Destiny (full and demo).
 
 ## Installing
@@ -24,7 +25,7 @@ Download the builds from the latest successful run in [Actions](../../actions) (
 |---|---|---|
 | `wolf4sdl-wolf3d` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-wolf3d-shareware` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
-| `wolf4sdl-sod` | Spear of Destiny: `*.sod` | `/3ds/wolf4sdl/sod/` |
+| `wolf4sdl-sod` | Spear of Destiny: `*.sod`, plus `*.sd2` / `*.sd3` for the mission packs | `/3ds/wolf4sdl/sod/` |
 | `wolf4sdl-sod-demo` | Spear of Destiny demo: `*.sdm` | `/3ds/wolf4sdl/sod/` |
 
 - `.cia`: install with FBI; it appears on the HOME Menu.

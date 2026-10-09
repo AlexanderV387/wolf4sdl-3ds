@@ -17,6 +17,7 @@
 #include "wl_def.h"
 #include "n3ds_input.h"
 #include "n3ds_hud.h"
+#include "n3ds_mission.h"
 #pragma hdrstop
 
 extern int lastgamemusicoffset;
@@ -4389,6 +4390,10 @@ CheckForEpisodes (void)
 
 #ifdef SPEAR
 #ifndef SPEARDEMO
+#ifdef __3DS__
+    if(param_mission == 0)
+        param_mission = N3DS_ChooseSpearMission();
+#endif
     if(param_mission == 0)
     {
         if(!stat(DATADIR "vswap.sod", &statbuf))
