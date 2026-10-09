@@ -1,12 +1,16 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.1.0
+
+- Spear of Destiny mission picker: with the mission packs (`*.sd2`, `*.sd3`) in `/3ds/wolf4sdl/sod/` next to `*.sod`, a menu on the top screen chooses the mission at startup (Up/Down, A). With only `*.sod` the game starts directly, as before.
+
 ## Downloads
 
 | File | Game data | Folder on the SD card |
 |---|---|---|
 | `wolf4sdl-wolf3d.cia` / `.3dsx` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-wolf3d-shareware.cia` / `.3dsx` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
-| `wolf4sdl-sod.cia` / `.3dsx` | Spear of Destiny: `*.sod` | `/3ds/wolf4sdl/sod/` |
+| `wolf4sdl-sod.cia` / `.3dsx` | Spear of Destiny: `*.sod` (mission packs: `*.sd2`, `*.sd3`) | `/3ds/wolf4sdl/sod/` |
 | `wolf4sdl-sod-demo.cia` / `.3dsx` | Spear of Destiny demo: `*.sdm` | `/3ds/wolf4sdl/sod/` |
 
 Install the `.cia` with FBI, or copy the `.3dsx` to `/3ds/` and open it from the Homebrew Launcher. Game data is not included: use your own copy.
