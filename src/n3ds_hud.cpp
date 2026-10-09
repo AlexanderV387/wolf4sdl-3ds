@@ -21,6 +21,13 @@ boolean N3DS_HudVisible (void)
     return hudready && ingame && viewsize == 21;
 }
 
+// In any view size: with a smaller view the status bar is on the top screen
+// and the map fills the bottom screen.
+boolean N3DS_MapVisible (void)
+{
+    return showmap && ingame && player;
+}
+
 void N3DS_ResetMap (void)
 {
     memset (seen, 0, sizeof (seen));
@@ -194,9 +201,9 @@ static void UpdateBottom (SDL_Surface *dest)
 {
     static int laststate = -1;
     boolean hudvisible = N3DS_HudVisible ();
-    boolean mapvisible = hudvisible && showmap;
+    boolean mapvisible = N3DS_MapVisible ();
     // The state includes the layout so a change clears the old one.
-    int state = (hudvisible ? 1 + hudpos + 4 * mapvisible : 0) + 16 * showfps;
+    int state = (hudvisible ? 1 + hudpos : 0) + 4 * mapvisible + 16 * showfps;
 
     if (dest->h < N3DS_VIDEO_HEIGHT)
         return;
@@ -210,8 +217,8 @@ static void UpdateBottom (SDL_Surface *dest)
         SDL_Rect all = { 0, (Sint16) screenHeight, (Uint16) dest->w, (Uint16) screenHeight };
         SDL_FillRect (dest, &all, SDL_MapRGB (dest->format, 0, 0, 0));
         laststate = state;
-        if (hudvisible)
-            N3DS_BottomScreenOn ();     // the HUD is never hidden
+        if (hudvisible || mapvisible)
+            N3DS_BottomScreenOn ();     // the HUD and the map are never hidden
     }
 
     if (SDL_MUSTLOCK (dest) && SDL_LockSurface (dest) < 0)
@@ -246,6 +253,8 @@ static void UpdateBottom (SDL_Surface *dest)
         else
             statusy = hudpos == hudpos_top ? 0 : (hudpos == hudpos_middle ? freerows / 2 : freerows);
     }
+    else if (mapvisible)
+        DrawMap (0, 240);
 
     if (showfps)
     {

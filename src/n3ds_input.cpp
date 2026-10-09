@@ -130,9 +130,10 @@ void N3DS_PollBottomScreenToggle (void)
     static bool wastouching = false;
     bool touching = (hidKeysHeld () & KEY_TOUCH) != 0;
 
-    // In full screen view the bottom screen shows the HUD: keep it on.
+    // The HUD (full screen view) and the map keep the bottom screen on.
     // With touch turning, a drag in a game turns instead of toggling.
-    if (touching && !wastouching && (!bottomon || !N3DS_HudVisible ())
+    if (touching && !wastouching
+            && (!bottomon || !(N3DS_HudVisible () || N3DS_MapVisible ()))
             && !(touchturn && ingame))
     {
         bottomon = !bottomon;

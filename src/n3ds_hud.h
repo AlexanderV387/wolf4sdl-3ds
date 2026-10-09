@@ -14,12 +14,13 @@
 
 enum { hudpos_top, hudpos_middle, hudpos_bottom, NUMHUDPOS };
 extern int hudpos;              // where on the bottom screen (with the map: above or below it)
-extern boolean showmap;         // map of what was seen, next to the status bar
+extern boolean showmap;         // map of what was seen on the bottom screen, in any view size
 extern boolean showfps;         // small frame counter on the bottom screen
 
 void    N3DS_DrawHud (void);                    // once per frame in PlayLoop
 void    N3DS_Flip (SDL_Surface *dest);          // use instead of SDL_Flip(screen)
-boolean N3DS_HudVisible (void);
+boolean N3DS_HudVisible (void);                 // status bar on the bottom screen
+boolean N3DS_MapVisible (void);                 // map on the bottom screen
 void    N3DS_ResetMap (void);                   // a level starts: nothing seen yet
 
 #endif
