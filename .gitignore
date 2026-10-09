@@ -41,3 +41,13 @@ Thumbs.db
 *.layout
 *.depend
 settings.json
+
+# Build output #
+################
+build/
+build-*/
+*.3dsx
+*.elf
+*.smdh
+*.cia
+*.map
