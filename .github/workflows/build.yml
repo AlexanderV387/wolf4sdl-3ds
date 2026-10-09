@@ -104,6 +104,7 @@ jobs:
             desc: Wolfenstein 3D and Spear of Destiny
             id: "0xF3D50"
             code: CTR-H-W4SD
+            icon: assets/icon-all.png
           - variant: wolf3d
             title: Wolf4SDL 3DS
             desc: Wolfenstein 3D (v1.4 Activision/Steam/GOG)

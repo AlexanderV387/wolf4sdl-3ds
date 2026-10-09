@@ -48,7 +48,7 @@ done
 
 "$DEVKITPRO/tools/bin/smdhtool" --create "Wolf4SDL 3DS" \
     "Wolfenstein 3D and Spear of Destiny" "AlexanderV387, hax0kartik, Wolf4SDL" \
-    icon.png wolf4sdl.smdh
+    assets/icon-all.png wolf4sdl.smdh
 "$DEVKITPRO/tools/bin/3dsxtool" wolf4sdl.elf wolf4sdl.3dsx --smdh=wolf4sdl.smdh
 
 "$BIN-size" wolf4sdl.elf
