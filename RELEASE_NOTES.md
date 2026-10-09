@@ -1,5 +1,9 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.2.2
+
+- Spear of Destiny banner with its own title.
+
 ## New in 1.2.1
 
 - Spear of Destiny menus: the 320x200 backdrop was drawn in the top left corner of the 400x240 screen, out of line with the centered menus and leaving the rest of the screen with old images. It is now centered and repeated to fill the screen.
