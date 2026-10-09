@@ -1,4 +1,4 @@
-// Status bar (HUD) on the 3DS bottom screen.
+// Status bar (HUD), map and frame counter on the 3DS bottom screen.
 //
 // The video mode is 400x480: SDL shows the top half on the top screen and
 // the bottom half on the bottom screen (its centre 320 columns). In full
@@ -13,10 +13,13 @@
 #define N3DS_VIDEO_HEIGHT   480     // top screen rows + bottom screen rows
 
 enum { hudpos_top, hudpos_middle, hudpos_bottom, NUMHUDPOS };
-extern int hudpos;                              // where on the bottom screen
+extern int hudpos;              // where on the bottom screen (with the map: above or below it)
+extern boolean showmap;         // map of what was seen, next to the status bar
+extern boolean showfps;         // small frame counter on the bottom screen
 
 void    N3DS_DrawHud (void);                    // once per frame in PlayLoop
 void    N3DS_Flip (SDL_Surface *dest);          // use instead of SDL_Flip(screen)
 boolean N3DS_HudVisible (void);
+void    N3DS_ResetMap (void);                   // a level starts: nothing seen yet
 
 #endif

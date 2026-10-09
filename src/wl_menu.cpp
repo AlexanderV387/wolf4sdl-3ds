@@ -125,7 +125,11 @@ CP_itemtype SndMenu[] = {
 #ifdef JAPAN
 enum { CTL_MOUSEENABLE, CTL_JOYENABLE, CTL_JOY2BUTTONUNKNOWN, CTL_GAMEPADUNKONWN, CTL_MOUSESENS, CTL_CUSTOMIZE };
 #else
-enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_TOUCHTURN, CTL_TOUCHSPEED };
+#ifdef __3DS__
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_MAP, CTL_TOUCHTURN, CTL_TOUCHSPEED, CTL_FPS };
+#else
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE };
+#endif
 #endif
 
 CP_itemtype CtlMenu[] = {
@@ -143,8 +147,10 @@ CP_itemtype CtlMenu[] = {
     {1, "Run: hold button", 0},           // text set by DrawCtlScreen
     {1, "Customize buttons", CustomControls},
     {1, "HUD: bottom", 0},                // text set by DrawCtlScreen
+    {1, "Map on the bottom screen", 0},
     {1, "Touch turning", 0},
-    {1, "Touch speed: 4", 0}              // text set by DrawCtlScreen
+    {1, "Touch speed: 4", 0},             // text set by DrawCtlScreen
+    {1, "FPS counter", 0}
 #else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
@@ -1736,6 +1742,33 @@ PrintLSEntry (int w, int color)
 }
 
 
+// On the 3DS, a new or emptied file gets its space on the SD card allocated
+// anew, which can take seconds (8 on a large card): saved games are written
+// over the old file in place, then cut to their size.
+static FILE *OpenSaveForWriting (const char *path)
+{
+#ifdef __3DS__
+    FILE *file = fopen (path, "r+b");
+    if (file)
+        return file;
+#else
+    unlink (path);
+#endif
+    return fopen (path, "wb");
+}
+
+static void CloseSave (FILE *file)
+{
+#ifdef __3DS__
+    fflush (file);
+    if (ftruncate (fileno (file), ftell (file)) != 0)
+    {
+        // the saved game is complete; only an old longer tail stays
+    }
+#endif
+    fclose (file);
+}
+
 ////////////////////////////////////////////////////////////////////
 //
 // SAVE CURRENT GAME
@@ -1768,15 +1801,14 @@ CP_SaveGame (int quick)
             else
                 strcpy(savepath, name);
 
-            unlink (savepath);
-            file = fopen (savepath, "wb");
+            file = OpenSaveForWriting (savepath);
 
             strcpy (input, &SaveGameNames[which][0]);
 
             fwrite (input, 1, 32, file);
             fseek (file, 32, SEEK_SET);
             SaveTheGame (file, 0, 0);
-            fclose (file);
+            CloseSave (file);
 
 #ifdef _arch_dreamcast
             DC_SaveToVMU(name, input);
@@ -1844,15 +1876,14 @@ CP_SaveGame (int quick)
                 else
                     strcpy(savepath, name);
 
-                unlink (savepath);
-                file = fopen (savepath, "wb");
+                file = OpenSaveForWriting (savepath);
                 fwrite (input, 32, 1, file);
                 fseek (file, 32, SEEK_SET);
 
                 DrawLSAction (1);
                 SaveTheGame (file, LSA_X + 8, LSA_Y + 5);
 
-                fclose (file);
+                CloseSave (file);
 
 #ifdef _arch_dreamcast
                 DC_SaveToVMU(name, input);
@@ -1930,7 +1961,27 @@ CP_Control (int)
 
 #ifdef __3DS__
             case CTL_HUDPOS:
-                hudpos = (hudpos + 1) % NUMHUDPOS;
+                // With the map: above or below it.
+                if (showmap)
+                    hudpos = hudpos == hudpos_top ? hudpos_bottom : hudpos_top;
+                else
+                    hudpos = (hudpos + 1) % NUMHUDPOS;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
+
+            case CTL_MAP:
+                showmap ^= 1;
+                if (showmap && hudpos == hudpos_middle)
+                    hudpos = hudpos_top;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
+
+            case CTL_FPS:
+                showfps ^= 1;
                 DrawCtlScreen ();
                 ShootSnd ();
                 WaitKeyUp ();
@@ -2136,7 +2187,11 @@ DrawCtlScreen (void)
     strcpy (CtlMenu[CTL_JOYENABLE].string, runnames[runmode]);
     static const char *hudnames[NUMHUDPOS] =
         { "HUD: top of bottom screen", "HUD: middle", "HUD: bottom" };
-    strcpy (CtlMenu[CTL_HUDPOS].string, hudnames[hudpos]);
+    if (showmap)
+        strcpy (CtlMenu[CTL_HUDPOS].string,
+                hudpos == hudpos_bottom ? "HUD: below the map" : "HUD: above the map");
+    else
+        strcpy (CtlMenu[CTL_HUDPOS].string, hudnames[hudpos]);
     snprintf (CtlMenu[CTL_TOUCHSPEED].string, sizeof (CtlMenu[CTL_TOUCHSPEED].string),
               "Touch speed: %d", touchspeed);
     DrawMenu (&CtlItems, CtlMenu);
@@ -2144,7 +2199,9 @@ DrawCtlScreen (void)
     x = CTL_X + CtlItems.indent - 24;
     y = CTL_Y + 3;
     VWB_DrawPic (x, y, dualstick ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
+    VWB_DrawPic (x, y + 13 * CTL_MAP, showmap ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
     VWB_DrawPic (x, y + 13 * CTL_TOUCHTURN, touchturn ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
+    VWB_DrawPic (x, y + 13 * CTL_FPS, showfps ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
 #else
     if (IN_JoyPresent())
         CtlMenu[CTL_JOYENABLE].active = 1;

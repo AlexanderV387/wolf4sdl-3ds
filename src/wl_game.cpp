@@ -2,6 +2,9 @@
 
 #include <math.h>
 #include "wl_def.h"
+#ifdef __3DS__
+#include "n3ds_hud.h"
+#endif
 #include <SDL/SDL_mixer.h>
 #pragma hdrstop
 
@@ -653,6 +656,10 @@ void SetupGameLevel (void)
         US_InitRndT (false);
     else
         US_InitRndT (true);
+
+#ifdef __3DS__
+    N3DS_ResetMap ();               // the bottom screen map starts empty
+#endif
 
 //
 // load the level

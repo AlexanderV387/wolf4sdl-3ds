@@ -198,6 +198,19 @@ void ReadConfig(void)
             if(read(file,&touchspeed,sizeof(touchspeed)) != sizeof(touchspeed)
                     || touchspeed < 1 || touchspeed > 10)
                 touchspeed = 4;
+            // Map and frame counter (1.4). Older settings: map on, with the
+            // status bar above it.
+            if(read(file,&showmap,sizeof(showmap)) != sizeof(showmap))
+            {
+                showmap = true;
+                hudpos = hudpos_top;
+            }
+            showmap = showmap ? true : false;
+            if(read(file,&showfps,sizeof(showfps)) != sizeof(showfps))
+                showfps = false;
+            showfps = showfps ? true : false;
+            if(showmap && hudpos == hudpos_middle)
+                hudpos = hudpos_top;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
                 if(n3dsbind[i] < bt_nobutton || n3dsbind[i] >= NUMBUTTONS)
                     n3dsbind[i] = bt_nobutton;
@@ -333,6 +346,8 @@ void WriteConfig(void)
         write(file,&hudpos,sizeof(hudpos));
         write(file,&touchturn,sizeof(touchturn));
         write(file,&touchspeed,sizeof(touchspeed));
+        write(file,&showmap,sizeof(showmap));
+        write(file,&showfps,sizeof(showfps));
 
         close(file);
     }

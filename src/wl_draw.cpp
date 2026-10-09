@@ -1084,8 +1084,13 @@ void CalcTics (void)
     tics = (curtime * 7) / 100 - lasttimecount;
     if(!tics)
     {
+#ifndef __3DS__
         // wait until end of current tic
         SDL_Delay(((lasttimecount + 1) * 100) / 7 - curtime);
+#endif
+        // On the 3DS every frame waits for the 60 Hz vertical blank
+        // (N3DS_Flip); sleeping until the next 70 Hz tic as well made the
+        // two waits drift apart and frames miss the vblank.
         tics = 1;
     }
 

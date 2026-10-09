@@ -78,7 +78,12 @@ static int ReadLastGame (void)
 
 static void WriteLastGame (int game)
 {
-    FILE *file = fopen (lastgamefile, "w");
+    // Written over in place ("r+"): a new or emptied file gets its space on
+    // the SD card allocated anew, which can take seconds (the number is
+    // always one digit).
+    FILE *file = fopen (lastgamefile, "r+");
+    if (!file)
+        file = fopen (lastgamefile, "w");
     if (file)
     {
         fprintf (file, "%d\n", game);
