@@ -60,6 +60,9 @@ make TARGET=wolf4sdl-wolf3d BUILD=build-wolf3d \
 
 ## Credits
 
+The original Wolf4SDL manual (features, command line options, credits) is in [`docs/wolf4sdl-original-manual.txt`](docs/wolf4sdl-original-manual.txt).
+
+
 - id Software, for Wolfenstein 3D
 - All Wolf4SDL contributors
 - hax0kartik, for the original 3DS port
