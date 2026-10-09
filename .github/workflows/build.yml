@@ -18,8 +18,10 @@ jobs:
             flags: -DCARMACIZED -DUPLOAD
           - variant: sod
             flags: -DCARMACIZED -DSPEAR -DGOODTIMES
+            icon: assets/icon-sod.png
           - variant: sod-demo
             flags: -DCARMACIZED -DSPEAR -DSPEARDEMO
+            icon: assets/icon-sod.png
     steps:
       - uses: actions/checkout@v5
 
@@ -37,6 +39,7 @@ jobs:
       - name: Build
         run: |
           make TARGET=wolf4sdl-${{ matrix.variant }} BUILD=build-${{ matrix.variant }} \
+               ICON=${{ matrix.icon || 'icon.png' }} \
                EXTRA_CFLAGS="-DVERSIONALREADYCHOSEN ${{ matrix.flags }}"
 
       - uses: actions/upload-artifact@v4
@@ -116,11 +119,13 @@ jobs:
             desc: Spear of Destiny
             id: "0xF3D53"
             code: CTR-H-SODF
+            icon: assets/icon-sod.png
           - variant: sod-demo
             title: Wolf4SDL 3DS SoD Demo
             desc: Spear of Destiny demo
             id: "0xF3D54"
             code: CTR-H-SODD
+            icon: assets/icon-sod.png
     steps:
       - uses: actions/checkout@v5
 
@@ -138,7 +143,7 @@ jobs:
           tools/3ds/make-cia.sh wolf4sdl-${{ matrix.variant }}.elf wolf4sdl-${{ matrix.variant }}.cia \
             "${{ matrix.title }}" "${{ matrix.desc }}" "AlexanderV387, hax0kartik, Wolf4SDL" \
             ${{ matrix.id }} ${{ matrix.code }} \
-            assets/icon.png assets/banner-${{ matrix.variant }}.png assets/banner.wav
+            ${{ matrix.icon || 'assets/icon.png' }} assets/banner-${{ matrix.variant }}.png assets/banner.wav
 
       - uses: actions/upload-artifact@v4
         with:

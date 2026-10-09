@@ -1418,7 +1418,7 @@ DrawSoundMenu (void)
     // DRAW SOUND MENU
     //
     ClearMScreen ();
-    VWB_DrawPic (112, 184, C_MOUSELBACKPIC);
+    VWB_DrawPic (MENU_DX + 112, 184, C_MOUSELBACKPIC);
 
     DrawWindow (SM_X - 8, SM_Y1 - 3, SM_W, SM_H1, BKGDCOLOR);
     DrawWindow (SM_X - 8, SM_Y2 - 3, SM_W, SM_H2, BKGDCOLOR);
@@ -1441,9 +1441,9 @@ DrawSoundMenu (void)
 
     DrawMenu (&SndItems, &SndMenu[0]);
 #ifndef JAPAN
-    VWB_DrawPic (100, SM_Y1 - 20, C_FXTITLEPIC);
-    VWB_DrawPic (100, SM_Y2 - 20, C_DIGITITLEPIC);
-    VWB_DrawPic (100, SM_Y3 - 20, C_MUSICTITLEPIC);
+    VWB_DrawPic (MENU_DX + 100, SM_Y1 - 20, C_FXTITLEPIC);
+    VWB_DrawPic (MENU_DX + 100, SM_Y2 - 20, C_DIGITITLEPIC);
+    VWB_DrawPic (MENU_DX + 100, SM_Y3 - 20, C_MUSICTITLEPIC);
 #endif
 
     for (i = 0; i < SndItems.amount; i++)
@@ -1521,7 +1521,7 @@ DrawSoundMenu (void)
 void
 DrawLSAction (int which)
 {
-#define LSA_X   96
+#define LSA_X   (MENU_DX + 96)
 #define LSA_Y   80
 #define LSA_W   130
 #define LSA_H   42
@@ -1694,14 +1694,14 @@ DrawLoadSaveScreen (int loadsave)
 
     ClearMScreen ();
     fontnumber = 1;
-    VWB_DrawPic (112, 184, C_MOUSELBACKPIC);
+    VWB_DrawPic (MENU_DX + 112, 184, C_MOUSELBACKPIC);
     DrawWindow (LSM_X - 10, LSM_Y - 5, LSM_W, LSM_H, BKGDCOLOR);
     DrawStripes (10);
 
     if (!loadsave)
-        VWB_DrawPic (60, 0, C_LOADGAMEPIC);
+        VWB_DrawPic (MENU_DX + 60, 0, C_LOADGAMEPIC);
     else
-        VWB_DrawPic (60, 0, C_SAVEGAMEPIC);
+        VWB_DrawPic (MENU_DX + 60, 0, C_SAVEGAMEPIC);
 
     for (i = 0; i < 10; i++)
         PrintLSEntry (i, TEXTCOLOR);
@@ -1996,7 +1996,7 @@ DrawMouseSens (void)
     CA_CacheScreen (S_MOUSESENSPIC);
 #else
     ClearMScreen ();
-    VWB_DrawPic (112, 184, C_MOUSELBACKPIC);
+    VWB_DrawPic (MENU_DX + 112, 184, C_MOUSELBACKPIC);
 #ifdef SPANISH
     DrawWindow (10, 80, 300, 43, BKGDCOLOR);
 #else
@@ -2802,7 +2802,7 @@ DrawCustomScreen (void)
     ClearMScreen ();
     WindowX = 0;
     WindowW = 320;
-    VWB_DrawPic (112, 184, C_MOUSELBACKPIC);
+    VWB_DrawPic (MENU_DX + 112, 184, C_MOUSELBACKPIC);
     DrawStripes (10);
     VWB_DrawPic (80, 0, C_CUSTOMIZEPIC);
 
@@ -3339,6 +3339,27 @@ ClearMScreen (void)
 {
 #ifndef SPEAR
     VWB_Bar (0, 0, 400, 240, BORDCOLOR);
+#elif defined(__3DS__)
+    // The backdrop is 320x200 and the menus are centered on the 400x240
+    // screen: center it too and repeat it on the sides and the bottom
+    // (drawn at 0,0 it was misaligned and left the rest of the screen
+    // with whatever was there before).
+    const int picnum = C_BACKDROPPIC - STARTPICS;
+    const int width = pictable[picnum].width, height = pictable[picnum].height;
+    const int left = (screenWidth - width) / 2;
+
+    for (int desty = 0; desty < (int) screenHeight; desty += height)
+    {
+        const int h = (int) screenHeight - desty < height ? (int) screenHeight - desty : height;
+        for (int destx = 0; destx < (int) screenWidth; )
+        {
+            const int srcx = ((destx - left) % width + width) % width;
+            const int w = (int) screenWidth - destx < width - srcx ? (int) screenWidth - destx : width - srcx;
+            VL_MemToScreenScaledCoord (grsegs[C_BACKDROPPIC], width, height,
+                srcx, 0, destx, desty, w, h);
+            destx += w;
+        }
+    }
 #else
     VWB_DrawPic (0, 0, C_BACKDROPPIC);
 #endif

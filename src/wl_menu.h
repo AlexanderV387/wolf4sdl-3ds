@@ -43,6 +43,10 @@
 #define CENTERX         ((int) screenWidth / 2)
 #define CENTERY         ((int) screenHeight / 2)
 
+// 3DS: the screen is 400 pixels wide; the menus drawn for 320 pixels are
+// moved right by MENU_DX to be centered, like the main menu.
+#define MENU_DX ((int) screenWidth / 2 - 160)
+
 #define MENU_X  CENTERX - 84
 #define MENU_Y  55
 #define MENU_W  178
@@ -56,7 +60,7 @@
 #define MENU_H  13*9+6
 #endif
 
-#define SM_X    48
+#define SM_X    (MENU_DX + 48)
 #define SM_W    250
 
 #define SM_Y1   20
@@ -79,7 +83,7 @@
 #define CTL_H   60
 #endif
 
-#define LSM_X   85
+#define LSM_X   (MENU_DX + 85)
 #define LSM_Y   55
 #define LSM_W   175
 #define LSM_H   10*13+10
@@ -89,7 +93,7 @@
 #define NM_W    225
 #define NM_H    13*4+15
 
-#define NE_X    10
+#define NE_X    (MENU_DX + 10)
 #define NE_Y    23
 #define NE_W    400-NE_X*2
 #define NE_H    200-NE_Y*2
