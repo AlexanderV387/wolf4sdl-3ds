@@ -23,7 +23,7 @@ Download the builds from the [releases](../../releases) or from the latest succe
 
 | Build | Game data | Folder on the SD card |
 |---|---|---|
-| `wolf4sdl-all` | All of the below: a menu lists the games whose data is on the SD card (it starts directly when there is only one) | Both folders |
+| `wolf4sdl-all` | All of the below: a menu lists the games whose data is on the SD card (it starts directly when there is only one); Quit goes back to it | Both folders |
 | `wolf4sdl-wolf3d` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-wolf3d-shareware` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-sod` | Spear of Destiny: `*.sod`, plus `*.sd2` / `*.sd3` for the mission packs | `/3ds/wolf4sdl/sod/` |

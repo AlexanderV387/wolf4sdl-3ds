@@ -1562,6 +1562,10 @@ void Quit (const char *errorStr, ...)
 #endif
     }
 
+#ifdef __3DS__
+    if (N3DS_QuitHook)
+        N3DS_QuitHook ();
+#endif
     exit(0);
 }
 

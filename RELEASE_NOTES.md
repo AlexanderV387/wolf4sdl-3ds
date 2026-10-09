@@ -1,5 +1,9 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.3.0
+
+- `wolf4sdl-all.cia`: Quit goes back to the game picker instead of the HOME Menu (when more than one game is on the SD card); START in the picker goes to the HOME Menu. The picker starts on the last game played. The `.3dsx` still exits to the Homebrew Launcher.
+
 ## New in 1.2.3
 
 - Own icon and banner for `wolf4sdl-all` (both games).

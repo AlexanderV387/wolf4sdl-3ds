@@ -7,6 +7,11 @@
 
 int n3dsbind[N3DS_NUMBUTTONS];
 
+extern "C"
+{
+    void (*N3DS_QuitHook) (void) = NULL;
+}
+
 const char *n3dsbuttonname[N3DS_NUMBUTTONS] =
 {
     "A", "B", "X", "Y", "L", "R", "ZL", "ZR", "SELECT"

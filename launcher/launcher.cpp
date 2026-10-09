@@ -17,6 +17,12 @@ extern "C"
     int w3s_main (int argc, char *argv[]);
     int sod_main (int argc, char *argv[]);
     int sdm_main (int argc, char *argv[]);
+
+    // Each game's Quit hook (N3DS_QuitHook in src/n3ds_input.cpp).
+    extern void (*w3d_N3DS_QuitHook) (void);
+    extern void (*w3s_N3DS_QuitHook) (void);
+    extern void (*sod_N3DS_QuitHook) (void);
+    extern void (*sdm_N3DS_QuitHook) (void);
 }
 
 typedef int (*GameMain) (int argc, char *argv[]);
@@ -54,6 +60,39 @@ static bool Exists (const char *path)
     return path && stat (path, &st) == 0;
 }
 
+// The last game played, so the picker starts on it.
+static const char *lastgamefile = "/3ds/wolf4sdl/last-game.txt";
+
+static int ReadLastGame (void)
+{
+    int game = -1;
+    FILE *file = fopen (lastgamefile, "r");
+    if (file)
+    {
+        if (fscanf (file, "%d", &game) != 1)
+            game = -1;
+        fclose (file);
+    }
+    return game;
+}
+
+static void WriteLastGame (int game)
+{
+    FILE *file = fopen (lastgamefile, "w");
+    if (file)
+    {
+        fprintf (file, "%d\n", game);
+        fclose (file);
+    }
+}
+
+// Quit in a game: relaunch this title when it exits, which shows the picker
+// again. Each game shuts down as usual first, so nothing is left from it.
+static void BackToPicker (void)
+{
+    aptSetChainloaderToSelf ();
+}
+
 static bool HasData (const Game &game)
 {
     return Exists (game.data[0]) || Exists (game.data[1]);
@@ -67,10 +106,24 @@ static int PickGame (const int *available, int count)
     consoleInit (GFX_TOP, &console);
 
     int selected = 0, drawn = -1, result = -1;
+    const int lastgame = ReadLastGame ();
+    for (int i = 0; i < count; i++)
+        if (available[i] == lastgame)
+            selected = i;
+
+    // After Quit the button that confirmed it may still be held: wait for
+    // every button to be released before reading the menu.
+    bool released = false;
+
     while (aptMainLoop ())
     {
         hidScanInput ();
         u32 down = hidKeysDown ();
+        if (!released)
+        {
+            released = hidKeysHeld () == 0;
+            down = 0;
+        }
 
         if (count == 0)
         {
@@ -111,7 +164,8 @@ static int PickGame (const int *available, int count)
                 for (int i = 0; i < count; i++)
                     printf ("  %s %s\n\n", i == selected ? ">" : " ",
                             games[available[i]].name);
-                printf ("\n  Up/Down: choose  A: start  START: exit\n");
+                printf ("\n  Up/Down: choose  A: start\n"
+                        "  START: back to the HOME Menu\n");
                 drawn = selected;
             }
         }
@@ -133,6 +187,18 @@ int main (int argc, char *argv[])
     int game = (count == 1) ? available[0] : PickGame (available, count);
     if (game < 0)
         return 0;
+
+    // Quit goes back to the picker when there is something else to pick and
+    // this is the installed .cia (relaunching a .3dsx would restart the
+    // Homebrew Launcher instead).
+    if (count > 1 && !envIsHomebrew ())
+    {
+        WriteLastGame (game);
+        w3d_N3DS_QuitHook = BackToPicker;
+        w3s_N3DS_QuitHook = BackToPicker;
+        sod_N3DS_QuitHook = BackToPicker;
+        sdm_N3DS_QuitHook = BackToPicker;
+    }
 
     const char *program = argc > 0 ? argv[0] : "wolf4sdl";
     char *args[4] = {(char *) program, NULL, NULL, NULL};
