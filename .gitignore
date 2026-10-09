@@ -51,3 +51,7 @@ build-*/
 *.smdh
 *.cia
 *.map
+build-combined/
+wolf4sdl.elf
+wolf4sdl.3dsx
+wolf4sdl.smdh

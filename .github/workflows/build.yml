@@ -49,13 +49,58 @@ jobs:
           name: elf-${{ matrix.variant }}
           path: wolf4sdl-${{ matrix.variant }}.elf
 
+  all:
+    # The four games in one program with a game picker (launcher/).
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install SDL 1.2 portlibs
+        run: |
+          dkp-pacman -Sy || (sleep 10 && dkp-pacman -Sy) || true
+          for p in 3ds-sdl 3ds-sdl_mixer 3ds-sdl_ttf 3ds-sdl_image 3ds-sdl_gfx \
+                   3ds-libvorbisidec 3ds-libmad 3ds-libogg \
+                   3ds-freetype 3ds-libpng 3ds-libjpeg-turbo 3ds-zlib; do
+            dkp-pacman -S --noconfirm --needed "$p" || echo "::warning::package not found: $p"
+          done
+
+      - name: Build the four games
+        run: |
+          b() { make -j"$(nproc)" TARGET=wolf4sdl-$1 BUILD=build-$1 EXTRA_CFLAGS="-DVERSIONALREADYCHOSEN $2"; }
+          b wolf3d "-DCARMACIZED -DGOODTIMES"
+          b wolf3d-shareware "-DCARMACIZED -DUPLOAD"
+          b sod "-DCARMACIZED -DSPEAR -DGOODTIMES"
+          b sod-demo "-DCARMACIZED -DSPEAR -DSPEARDEMO"
+
+      - name: Link them with the game picker
+        run: |
+          tools/3ds/build-combined.sh
+          mv wolf4sdl.3dsx wolf4sdl-all.3dsx
+          mv wolf4sdl.elf wolf4sdl-all.elf
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wolf4sdl-all
+          path: wolf4sdl-all.3dsx
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: elf-all
+          path: wolf4sdl-all.elf
+
   cia:
-    needs: build
+    needs: [build, all]
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
+          - variant: all
+            title: Wolf4SDL 3DS
+            desc: Wolfenstein 3D and Spear of Destiny
+            id: "0xF3D50"
+            code: CTR-H-W4SD
           - variant: wolf3d
             title: Wolf4SDL 3DS
             desc: Wolfenstein 3D (v1.4 Activision/Steam/GOG)
@@ -104,7 +149,7 @@ jobs:
     # A commit on n3ds whose message contains [release] publishes a GitHub
     # release tagged v<VERSION> with every build (GitHub creates the tag).
     if: github.ref == 'refs/heads/n3ds' && contains(github.event.head_commit.message, '[release]')
-    needs: [build, cia]
+    needs: [build, all, cia]
     runs-on: ubuntu-latest
     permissions:
       contents: write

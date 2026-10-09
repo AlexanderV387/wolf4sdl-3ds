@@ -106,6 +106,7 @@ int     param_audiobuffer = 2048 / (44100 / param_samplerate);
 #endif
 
 int     param_mission = 0;
+boolean param_missiongiven = false;   // --mission given: no mission picker
 boolean param_goodtimes = false;
 boolean param_ignorenumchunks = false;
 
@@ -1911,6 +1912,7 @@ void CheckParameters(int argc, char *argv[])
             else
             {
                 param_mission = atoi(argv[i]);
+                param_missiongiven = true;
                 if(param_mission < 0 || param_mission > 3)
                 {
                   printf("The mission option must be between 0 and 3!\n");

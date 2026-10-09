@@ -4391,7 +4391,7 @@ CheckForEpisodes (void)
 #ifdef SPEAR
 #ifndef SPEARDEMO
 #ifdef __3DS__
-    if(param_mission == 0)
+    if(!param_missiongiven)
         param_mission = N3DS_ChooseSpearMission();
 #endif
     if(param_mission == 0)

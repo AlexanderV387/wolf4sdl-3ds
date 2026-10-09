@@ -1,5 +1,9 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.2.0
+
+- `wolf4sdl-all`: Wolfenstein 3D, the shareware, Spear of Destiny (and its mission packs) and the Spear of Destiny demo in a single `.cia`. At startup a menu lists the games whose data is on the SD card; with only one it starts directly. The separate `.cia` files are still available; both kinds can be installed at the same time.
+
 ## New in 1.1.0
 
 - Spear of Destiny mission picker: with the mission packs (`*.sd2`, `*.sd3`) in `/3ds/wolf4sdl/sod/` next to `*.sod`, a menu on the top screen chooses the mission at startup (Up/Down, A). With only `*.sod` the game starts directly, as before.
@@ -8,6 +12,7 @@ Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls,
 
 | File | Game data | Folder on the SD card |
 |---|---|---|
+| `wolf4sdl-all.cia` / `.3dsx` | Any of the below (one menu for all) | Both folders |
 | `wolf4sdl-wolf3d.cia` / `.3dsx` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-wolf3d-shareware.cia` / `.3dsx` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-sod.cia` / `.3dsx` | Spear of Destiny: `*.sod` (mission packs: `*.sd2`, `*.sd3`) | `/3ds/wolf4sdl/sod/` |

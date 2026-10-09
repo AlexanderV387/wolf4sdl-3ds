@@ -19,10 +19,11 @@ Runs at full speed on New 3DS.
 
 ## Installing
 
-Download the builds from the latest successful run in [Actions](../../actions) (branch `n3ds`).
+Download the builds from the [releases](../../releases) or from the latest successful run in [Actions](../../actions) (branch `n3ds`).
 
 | Build | Game data | Folder on the SD card |
 |---|---|---|
+| `wolf4sdl-all` | All of the below: a menu lists the games whose data is on the SD card (it starts directly when there is only one) | Both folders |
 | `wolf4sdl-wolf3d` | Wolfenstein 3D v1.4 (Activision, Steam, GOG): `*.wl6` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-wolf3d-shareware` | Shareware v1.4: `*.wl1` | `/3ds/wolf4sdl/wolf3d/` |
 | `wolf4sdl-sod` | Spear of Destiny: `*.sod`, plus `*.sd2` / `*.sd3` for the mission packs | `/3ds/wolf4sdl/sod/` |
@@ -56,6 +57,8 @@ GitHub Actions builds every variant with `devkitpro/devkitarm` and SDL 1.2 for 3
 make TARGET=wolf4sdl-wolf3d BUILD=build-wolf3d \
      EXTRA_CFLAGS="-DVERSIONALREADYCHOSEN -DCARMACIZED -DGOODTIMES"
 ```
+
+After building the four variants, `tools/3ds/build-combined.sh` links them into `wolf4sdl-all` with the game picker (`launcher/`): Wolf4SDL chooses the game at compile time, so the script renames each build's symbols (`main` → `w3d_main`, `sod_main`…) with objcopy.
 
 `tools/3ds/make-cia.sh` packages the `.elf` as a `.cia` (needs makerom and bannertool).
 
