@@ -5,6 +5,7 @@
 #include "wl_def.h"
 #include "n3ds_hud.h"
 #include "n3ds_input.h"
+#include "n3ds_keyboard.h"
 
 static SDL_Surface *hud = NULL;     // same size as screenBuffer, 8 bit
 static boolean hudready = false;
@@ -177,6 +178,12 @@ static void DrawMap (int maptop, int mapbottom)
     Fill ((int) centerx - 1, (int) centery - 1, 3, 3, playercolor);
 }
 
+// The keyboard on the bottom screen draws with this.
+static void KeyboardFill (int x, int y, int w, int h, unsigned rgb)
+{
+    Fill (x, y, w, h, SDL_MapRGB (target->format, rgb >> 16, (rgb >> 8) & 0xff, rgb & 0xff));
+}
+
 // ==========================================================================
 // Frame counter: small, in a corner of the bottom screen.
 
@@ -203,7 +210,9 @@ static void UpdateBottom (SDL_Surface *dest)
     boolean hudvisible = N3DS_HudVisible ();
     boolean mapvisible = N3DS_MapVisible ();
     // The state includes the layout so a change clears the old one.
-    int state = (hudvisible ? 1 + hudpos : 0) + 4 * mapvisible + 16 * showfps;
+    boolean keyboard = n3ds_keyboard::IsOpen ();
+    int state = (hudvisible ? 1 + hudpos : 0) + 4 * mapvisible + 16 * showfps
+              + 32 * keyboard;
 
     if (dest->h < N3DS_VIDEO_HEIGHT)
         return;
@@ -223,6 +232,17 @@ static void UpdateBottom (SDL_Surface *dest)
 
     if (SDL_MUSTLOCK (dest) && SDL_LockSurface (dest) < 0)
         return;
+
+    // The open keyboard covers the whole bottom screen.
+    if (keyboard)
+    {
+        cliptop = 0;
+        clipbottom = 240;
+        n3ds_keyboard::Draw (KeyboardFill, 0);
+        if (SDL_MUSTLOCK (dest))
+            SDL_UnlockSurface (dest);
+        return;
+    }
 
     int statusrows = scaleFactor * STATUSLINES;
     int statusy = 0;
@@ -256,13 +276,17 @@ static void UpdateBottom (SDL_Surface *dest)
     else if (mapvisible)
         DrawMap (0, 240);
 
+    // The keyboard's tab in the left corner and the frame counter in the
+    // right one, away from the stats.
+    int cornery = hudvisible && statusy == 0 ? statusrows + 4 : 4;
+    cliptop = 0;
+    clipbottom = 240;
+    n3ds_keyboard::Draw (KeyboardFill, cornery);
+
     if (showfps)
     {
-        // Frames per second (white) and milliseconds per frame (green),
-        // in the right corner away from the stats.
-        int y = hudvisible && statusy == 0 ? statusrows + 4 : 4;
-        cliptop = 0;
-        clipbottom = 240;
+        // Frames per second (white) and milliseconds per frame (green).
+        int y = cornery;
         Fill (256, y, 62, 13, SDL_MapRGB (dest->format, 0, 0, 0));
         DrawNumber (fps, 259, y + 2, 2, SDL_MapRGB (dest->format, 0xff, 0xff, 0xff));
         DrawNumber (framems, 289, y + 2, 2, SDL_MapRGB (dest->format, 0x80, 0xff, 0x80));

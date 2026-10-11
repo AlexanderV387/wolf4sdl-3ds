@@ -3,6 +3,7 @@
 #include "wl_def.h"
 #include "n3ds_input.h"
 #include "n3ds_hud.h"
+#include "n3ds_keyboard.h"
 #pragma hdrstop
 
 #include "wl_cloudsky.h"
@@ -547,7 +548,7 @@ void PollControls (void)
     static boolean wastouching = false;
     static int lasttouchx = 0;
     int touchturnx = 0;
-    if (touchturn && (kDown & KEY_TOUCH))
+    if (touchturn && (kDown & KEY_TOUCH) && !n3ds_keyboard::OwnsTouch ())
     {
         touchPosition touch;
         hidTouchRead(&touch);

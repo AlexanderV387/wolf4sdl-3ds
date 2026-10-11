@@ -21,6 +21,9 @@
 //
 
 #include "wl_def.h"
+#ifdef __3DS__
+#include "n3ds_input.h"
+#endif
 
 #pragma	hdrstop
 
@@ -513,6 +516,9 @@ US_LineInput(int x,int y,char *buf,const char *def,boolean escok,
 	lastbuttontime = lasttime + TickBase / 4;	// 250 ms => first button press accepted after 500 ms
 	LastASCII = key_None;
 	LastScan = sc_None;
+#ifdef __3DS__
+	N3DS_ShowKeyboard(true);	// the keyboard on the bottom screen
+#endif
 
 	while (!done)
 	{
@@ -756,6 +762,9 @@ US_LineInput(int x,int y,char *buf,const char *def,boolean escok,
 		py = y;
 		USL_DrawString(olds);
 	}
+#ifdef __3DS__
+	N3DS_ShowKeyboard(false);
+#endif
 	VW_UpdateScreen();
 
 	IN_ClearKeysDown();

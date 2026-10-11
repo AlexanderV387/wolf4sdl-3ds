@@ -172,8 +172,16 @@ void ReadConfig(void)
         int dummyJoystickPort = 0;
         read(file,&dummyJoystickPort,sizeof(dummyJoystickPort));
 
+#ifdef __3DS__
+        // Earlier versions saved placeholder keys: keep the PC ones, which
+        // the keyboard on the bottom screen presses.
+        int savedscan[sizeof(dirscan) + sizeof(buttonscan)];
+        read(file,savedscan,sizeof(dirscan));
+        read(file,savedscan,sizeof(buttonscan));
+#else
         read(file,dirscan,sizeof(dirscan));
         read(file,buttonscan,sizeof(buttonscan));
+#endif
         read(file,buttonmouse,sizeof(buttonmouse));
         read(file,buttonjoy,sizeof(buttonjoy));
 

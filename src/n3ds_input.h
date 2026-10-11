@@ -38,6 +38,10 @@ void N3DS_InitBottomScreen (void);
 void N3DS_PollBottomScreenToggle (void);  // a tap on the touch screen turns it off/on
 void N3DS_BottomScreenOn (void);          // e.g. when the HUD appears
 
+// The keyboard on the bottom screen (n3ds_keyboard): a tab in its top left
+// corner opens it; it also opens while the game asks for text.
+void N3DS_ShowKeyboard (boolean show);
+
 // Called by Quit just before exiting normally, when set. The combined build
 // (launcher/) uses it to go back to its game picker instead of the HOME Menu.
 extern "C" void (*N3DS_QuitHook) (void);
