@@ -1,5 +1,10 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.5.0
+
+- **Keyboard on the bottom screen:** a tab in its top left corner opens it (it also opens when you name a saved game). Cheats and debug keys work as on a PC keyboard; **HOLD** keeps tapped keys down for those that need several at once (M-L-I in Wolfenstein 3D, TAB-G-F10 in Spear of Destiny). CLOSE hides it.
+- The PC keys are the original ones again: the original 3DS port had replaced them with placeholders, so typing and the cheats never worked.
+
 ## New in 1.4.1
 
 - One download for every game: `wolf4sdl-all` plays whichever games are on your SD card (with only one, it starts it directly). The separate builds are no longer in the releases; they are still built in [Actions](https://github.com/AlexanderV387/wolf4sdl-3ds/actions) (branch `n3ds`).
