@@ -80,7 +80,7 @@ The original Wolf4SDL manual (features, command line options, credits) is in [`d
 - Druivensap, DreadKnight for testing
 - Steveice10, for the buildtools RSF template (MIT)
 
-This fork was developed by AlexanderV387 with the help of an AI assistant (Claude). The icon and banner art were also made with AI tools.
+3DS port: direction, design and hardware testing by AlexanderV387; code written with Claude (AI). Original engine: Wolf4SDL (Moritz "Ripper" Kroll and contributors). The icon and banner art were made with AI tools.
 
 ## License
 
