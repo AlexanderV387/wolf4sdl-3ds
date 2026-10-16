@@ -126,7 +126,7 @@ CP_itemtype SndMenu[] = {
 enum { CTL_MOUSEENABLE, CTL_JOYENABLE, CTL_JOY2BUTTONUNKNOWN, CTL_GAMEPADUNKONWN, CTL_MOUSESENS, CTL_CUSTOMIZE };
 #else
 #ifdef __3DS__
-enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_MAP, CTL_TOUCHTURN, CTL_TOUCHSPEED, CTL_FPS };
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_MAP, CTL_TOUCHTURN, CTL_TOUCHSPEED, CTL_FPS, CTL_WEAPONS };
 #else
 enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE };
 #endif
@@ -150,7 +150,8 @@ CP_itemtype CtlMenu[] = {
     {1, "Map on the bottom screen", 0},
     {1, "Touch turning", 0},
     {1, "Touch speed: 4", 0},             // text set by DrawCtlScreen
-    {1, "FPS counter", 0}
+    {1, "FPS counter", 0},
+    {1, "Weapon buttons", 0}
 #else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
@@ -1987,6 +1988,13 @@ CP_Control (int)
                 WaitKeyUp ();
                 break;
 
+            case CTL_WEAPONS:
+                weaponbar ^= 1;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
+
             case CTL_TOUCHTURN:
                 touchturn ^= 1;
                 DrawCtlScreen ();
@@ -2202,6 +2210,7 @@ DrawCtlScreen (void)
     VWB_DrawPic (x, y + 13 * CTL_MAP, showmap ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
     VWB_DrawPic (x, y + 13 * CTL_TOUCHTURN, touchturn ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
     VWB_DrawPic (x, y + 13 * CTL_FPS, showfps ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
+    VWB_DrawPic (x, y + 13 * CTL_WEAPONS, weaponbar ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
 #else
     if (IN_JoyPresent())
         CtlMenu[CTL_JOYENABLE].active = 1;

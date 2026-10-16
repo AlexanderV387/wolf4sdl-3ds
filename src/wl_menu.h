@@ -73,7 +73,7 @@
 #define CTL_X   CENTERX - (160 - 24)
 #if defined(JAPAN) || defined(__3DS__)
 #ifdef __3DS__
-#define CTL_Y   57      // 3DS: higher, to fit the extra rows
+#define CTL_Y   50      // 3DS: higher, to fit the extra rows
 #else
 #define CTL_Y   70
 #endif
@@ -82,7 +82,7 @@
 #endif
 #define CTL_W   284
 #ifdef __3DS__
-#define CTL_H   125     // five more rows: HUD position, map, touch turning and speed, FPS
+#define CTL_H   138     // six more rows: HUD position, map, touch turning and speed, FPS, weapon buttons
 #else
 #define CTL_H   60
 #endif

@@ -217,6 +217,10 @@ void ReadConfig(void)
             if(read(file,&showfps,sizeof(showfps)) != sizeof(showfps))
                 showfps = false;
             showfps = showfps ? true : false;
+            // Weapon buttons (1.6). Older settings: off.
+            if(read(file,&weaponbar,sizeof(weaponbar)) != sizeof(weaponbar))
+                weaponbar = false;
+            weaponbar = weaponbar ? true : false;
             if(showmap && hudpos == hudpos_middle)
                 hudpos = hudpos_top;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
@@ -356,6 +360,7 @@ void WriteConfig(void)
         write(file,&touchspeed,sizeof(touchspeed));
         write(file,&showmap,sizeof(showmap));
         write(file,&showfps,sizeof(showfps));
+        write(file,&weaponbar,sizeof(weaponbar));
 
         close(file);
     }

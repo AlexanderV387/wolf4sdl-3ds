@@ -6,12 +6,14 @@
 #include "n3ds_hud.h"
 #include "n3ds_input.h"
 #include "n3ds_keyboard.h"
+#include "n3ds_weapons.h"
 
 static SDL_Surface *hud = NULL;     // same size as screenBuffer, 8 bit
 static boolean hudready = false;
 int hudpos = hudpos_top;
 boolean showmap = true;
 boolean showfps = false;
+boolean weaponbar = false;
 
 // Tiles seen since the level started: the original has no map, so this one
 // shows only what the player has seen (spotvis, cleared every frame).
@@ -211,8 +213,11 @@ static void UpdateBottom (SDL_Surface *dest)
     boolean mapvisible = N3DS_MapVisible ();
     // The state includes the layout so a change clears the old one.
     boolean keyboard = n3ds_keyboard::IsOpen ();
+    // The weapon buttons, in a game: the bottom rows, the rest as before.
+    boolean weapons = weaponbar && ingame && player && !keyboard;
+    int bottom = weapons ? 240 - n3ds_weapons::height : 240;
     int state = (hudvisible ? 1 + hudpos : 0) + 4 * mapvisible + 16 * showfps
-              + 32 * keyboard;
+              + 32 * keyboard + 64 * weapons;
 
     if (dest->h < N3DS_VIDEO_HEIGHT)
         return;
@@ -232,6 +237,9 @@ static void UpdateBottom (SDL_Surface *dest)
 
     if (SDL_MUSTLOCK (dest) && SDL_LockSurface (dest) < 0)
         return;
+
+    if (!weapons)
+        n3ds_weapons::Hide ();
 
     // The open keyboard covers the whole bottom screen.
     if (keyboard)
@@ -258,7 +266,7 @@ static void UpdateBottom (SDL_Surface *dest)
 
     if (hudvisible)
     {
-        int freerows = 240 - statusrows;
+        int freerows = bottom - statusrows;
 
         if (mapvisible)
         {
@@ -266,7 +274,7 @@ static void UpdateBottom (SDL_Surface *dest)
             statusy = hudpos == hudpos_bottom ? freerows : 0;
 
             if (statusy == 0)
-                DrawMap (statusrows, 240);
+                DrawMap (statusrows, bottom);
             else
                 DrawMap (0, freerows);
         }
@@ -274,7 +282,17 @@ static void UpdateBottom (SDL_Surface *dest)
             statusy = hudpos == hudpos_top ? 0 : (hudpos == hudpos_middle ? freerows / 2 : freerows);
     }
     else if (mapvisible)
-        DrawMap (0, 240);
+        DrawMap (0, bottom);
+
+    if (weapons)
+    {
+        // The knife, the pistol, the machine gun and the chaingun: the
+        // best one and those before it are held.
+        cliptop = 0;
+        clipbottom = 240;
+        n3ds_weapons::Draw (KeyboardFill, bottom, 4, (2u << gamestate.bestweapon) - 1,
+                            gamestate.weapon);
+    }
 
     // The keyboard's tab in the left corner and the frame counter in the
     // right one, away from the stats.

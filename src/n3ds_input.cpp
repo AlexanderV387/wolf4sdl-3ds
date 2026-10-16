@@ -6,6 +6,7 @@
 #include "n3ds_input.h"
 #include "n3ds_hud.h"
 #include "n3ds_keyboard.h"
+#include "n3ds_weapons.h"
 
 int n3dsbind[N3DS_NUMBUTTONS];
 
@@ -167,6 +168,7 @@ void N3DS_InitBottomScreen (void)
     aptHook (&apthook, AptHook, NULL);
     atexit (RestoreBottomScreen);
     n3ds_keyboard::SetSendKey (SendKey);
+    n3ds_weapons::SetSendKey (SendKey);
 }
 
 void N3DS_ShowKeyboard (boolean show)
@@ -186,8 +188,17 @@ void N3DS_PollBottomScreenToggle (void)
         hidTouchRead (&touch);
 
     // The keyboard's tab and the open keyboard take their touches; the
-    // keyboard keeps the bottom screen on.
-    if (n3ds_keyboard::Update (touching, touch.px, touch.py))
+    // keyboard keeps the bottom screen on. The weapon buttons take theirs.
+    bool keyboard = n3ds_keyboard::Update (touching, touch.px, touch.py);
+    bool weapons = n3ds_weapons::Update (touching, touch.px, touch.py) && !keyboard;
+
+    if (weapons)
+    {
+        wastouching = touching;
+        return;
+    }
+
+    if (keyboard)
     {
         if (n3ds_keyboard::IsOpen ())
             N3DS_BottomScreenOn ();

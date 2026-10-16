@@ -16,6 +16,7 @@ enum { hudpos_top, hudpos_middle, hudpos_bottom, NUMHUDPOS };
 extern int hudpos;              // where on the bottom screen (with the map: above or below it)
 extern boolean showmap;         // map of what was seen on the bottom screen, in any view size
 extern boolean showfps;         // small frame counter on the bottom screen
+extern boolean weaponbar;       // weapon buttons at the bottom of the bottom screen
 
 void    N3DS_DrawHud (void);                    // once per frame in PlayLoop
 void    N3DS_Flip (SDL_Surface *dest);          // use instead of SDL_Flip(screen)
