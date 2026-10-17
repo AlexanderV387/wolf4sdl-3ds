@@ -74,7 +74,7 @@ With more than one game on the SD card, a menu chooses one at startup, and Quit 
 - Three run modes: stick fully pushed, hold the button, or press once to sprint
 - Rebindable buttons for every action; R fires by default
 - Nintendo-style menus: A accepts, B goes back, START leaves the menu; quitting only through Quit
-- HUD on the bottom screen in full screen view (top, middle or bottom)
+- HUD on the bottom screen in full screen view (top or bottom)
 - Tap the touch screen to turn the bottom screen off or on
 - No DOS memory check screen at startup
 - Spear of Destiny and Spear of Destiny demo builds

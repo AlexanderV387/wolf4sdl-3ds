@@ -12,7 +12,7 @@
 
 #define N3DS_VIDEO_HEIGHT   480     // top screen rows + bottom screen rows
 
-enum { hudpos_top, hudpos_middle, hudpos_bottom, NUMHUDPOS };
+enum { hudpos_top, hudpos_middle, hudpos_bottom, NUMHUDPOS };   // middle: older settings only
 extern int hudpos;              // where on the bottom screen (with the map: above or below it)
 extern boolean showmap;         // map of what was seen on the bottom screen, in any view size
 extern boolean showfps;         // small frame counter on the bottom screen

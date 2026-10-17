@@ -221,7 +221,7 @@ void ReadConfig(void)
             if(read(file,&weaponbar,sizeof(weaponbar)) != sizeof(weaponbar))
                 weaponbar = false;
             weaponbar = weaponbar ? true : false;
-            if(showmap && hudpos == hudpos_middle)
+            if(hudpos == hudpos_middle)     // no longer offered
                 hudpos = hudpos_top;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
                 if(n3dsbind[i] < bt_nobutton || n3dsbind[i] >= NUMBUTTONS)

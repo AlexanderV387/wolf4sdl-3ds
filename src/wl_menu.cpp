@@ -1962,11 +1962,8 @@ CP_Control (int)
 
 #ifdef __3DS__
             case CTL_HUDPOS:
-                // With the map: above or below it.
-                if (showmap)
-                    hudpos = hudpos == hudpos_top ? hudpos_bottom : hudpos_top;
-                else
-                    hudpos = (hudpos + 1) % NUMHUDPOS;
+                // At the top or the bottom (with the map: above or below it).
+                hudpos = hudpos == hudpos_top ? hudpos_bottom : hudpos_top;
                 DrawCtlScreen ();
                 ShootSnd ();
                 WaitKeyUp ();
@@ -1974,8 +1971,6 @@ CP_Control (int)
 
             case CTL_MAP:
                 showmap ^= 1;
-                if (showmap && hudpos == hudpos_middle)
-                    hudpos = hudpos_top;
                 DrawCtlScreen ();
                 ShootSnd ();
                 WaitKeyUp ();
@@ -2193,13 +2188,12 @@ DrawCtlScreen (void)
     static const char *runnames[NUMRUNMODES] =
         { "Run: stick fully pushed", "Run: hold button", "Run: press once" };
     strcpy (CtlMenu[CTL_JOYENABLE].string, runnames[runmode]);
-    static const char *hudnames[NUMHUDPOS] =
-        { "HUD: top of bottom screen", "HUD: middle", "HUD: bottom" };
     if (showmap)
         strcpy (CtlMenu[CTL_HUDPOS].string,
                 hudpos == hudpos_bottom ? "HUD: below the map" : "HUD: above the map");
     else
-        strcpy (CtlMenu[CTL_HUDPOS].string, hudnames[hudpos]);
+        strcpy (CtlMenu[CTL_HUDPOS].string,
+                hudpos == hudpos_bottom ? "HUD: bottom" : "HUD: top of bottom screen");
     snprintf (CtlMenu[CTL_TOUCHSPEED].string, sizeof (CtlMenu[CTL_TOUCHSPEED].string),
               "Touch speed: %d", touchspeed);
     DrawMenu (&CtlItems, CtlMenu);

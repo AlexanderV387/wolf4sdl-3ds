@@ -279,7 +279,7 @@ static void UpdateBottom (SDL_Surface *dest)
                 DrawMap (0, freerows);
         }
         else
-            statusy = hudpos == hudpos_top ? 0 : (hudpos == hudpos_middle ? freerows / 2 : freerows);
+            statusy = hudpos == hudpos_bottom ? freerows : 0;
     }
     else if (mapvisible)
         DrawMap (0, bottom);

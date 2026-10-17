@@ -470,6 +470,12 @@ void PollControls (void)
 
     N3DS_PollButtons ();            // buttons -> actions, as set in the menu
 
+    // Keys 1-4 ready the weapons: the weapon buttons on the bottom screen
+    // send them (the rest of the PC keyboard is not read, see above).
+    for (i = bt_readyknife; i <= bt_readychaingun; i++)
+        if (Keyboard[sc_1 + i - bt_readyknife])
+            buttonstate[i] = true;
+
     /*if (mouseenabled && IN_IsInputGrabbed())
         PollMouseButtons ();
 
