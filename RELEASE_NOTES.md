@@ -1,5 +1,11 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.6.0
+
+- **Weapon buttons on the bottom screen** (option "Weapon buttons" in the Controls menu): a row with 1 to 4 under the HUD; tap a number to take that weapon.
+- Fix: the number keys 1-4 never changed weapons. The original 3DS port did not read them.
+- The status bar on the bottom screen goes at the top or the bottom (the middle position is gone).
+
 ## New in 1.5.0
 
 - **Keyboard on the bottom screen:** a tab in its top left corner opens it (it also opens when you name a saved game). Cheats and debug keys work as on a PC keyboard; **HOLD** keeps tapped keys down for those that need several at once (M-L-I in Wolfenstein 3D, TAB-G-F10 in Spear of Destiny). CLOSE hides it.
