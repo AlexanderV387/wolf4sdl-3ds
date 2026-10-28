@@ -1,5 +1,10 @@
 Wolfenstein 3D and Spear of Destiny for the Nintendo 3DS, with New 3DS controls, a HUD on the bottom screen and `.cia` builds. Based on Wolf4SDL and hax0kartik's 3DS port.
 
+## New in 1.7.0
+
+- **800x240:** the top screen in its wide mode (not on the original 2DS), on by default. The 3D view is drawn with twice the columns, so walls and sprites are sharper across; menus and texts are shown twice as wide. *Options > Control > Screen 800x240* turns it off (from the next start). At 60 FPS: both screens are made on the New 3DS's third core.
+- **Map zoom:** - and + buttons in the map's lower right corner, five sizes; the zoom is kept in the settings.
+
 ## New in 1.6.0
 
 - **Weapon buttons on the bottom screen** (option "Weapon buttons" in the Controls menu): a row with 1 to 4 under the HUD; tap a number to take that weapon.

@@ -12,6 +12,7 @@ Runs at full speed on New 3DS.
 - **Rebindable buttons:** every action can be bound to A, B, X, Y, L, R, ZL, ZR or SELECT from *Options > Control > Customize buttons*.
 - **Nintendo-style menus:** A accepts, B goes back, START leaves the menu. Quitting is only through *Quit*.
 - **60 FPS** on New 3DS, with an optional small FPS counter.
+- **800x240:** the top screen's wide mode (not on the original 2DS), on by default: the 3D view is drawn with twice the columns. "Screen 800x240" in the Controls menu turns it off (from the next start).
 - **HUD and map on the bottom screen:** in full screen view, the status bar and a map of what you have seen (status bar above or below it); with a smaller view, the map fills the bottom screen. The map has zoom buttons (- and +) in its lower right corner and can be turned off; without it, the status bar goes at the top or the bottom of the bottom screen.
 - A tap on the touch screen turns the bottom screen off or on (except while it shows the HUD or the map).
 - No DOS memory check screen at startup.
