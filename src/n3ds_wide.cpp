@@ -102,6 +102,71 @@ static u64 fliptks, toptks, waittks;
 static int timedframes;
 static const u64 tickspms = 268111;
 
+static u64 parttks[WT_COUNT];
+static u64 logstart, lastframe, framemax;
+static int logframes, slow17, slow34;
+
+void N3DS_WideTime (int part, unsigned long long ticks)
+{
+    parttks[part] += ticks;
+}
+
+static void WriteLog (void)
+{
+    static bool started;
+    FILE *f = fopen ("/3ds/wolf4sdl/wide-log.txt", started ? "a" : "w");
+
+    if (f)
+    {
+        if (!started)
+            fprintf (f, "variant frames fps | ms per frame: draw wideend hud flip wait vblank"
+                        " top(core2) | worst ms, frames over 17 ms, over 34 ms\n");
+        started = true;
+
+        const double n = logframes, ms = tickspms;
+        fprintf (f, "%d %d %.1f |", n3ds_pace_variant, logframes,
+                 n * 1000.0 * ms / (double) (lastframe - logstart));
+        static const int order[] = { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_VBLANK, WT_TOP };
+        for (int i : order)
+            fprintf (f, " %.1f", parttks[i] / n / ms);
+        fprintf (f, " | %.1f %d %d\n", framemax / ms, slow17, slow34);
+        fclose (f);
+    }
+
+    memset (parttks, 0, sizeof (parttks));
+    framemax = 0;
+    logframes = slow17 = slow34 = 0;
+}
+
+void N3DS_WideFrameDone (void)
+{
+    const u64 now = svcGetSystemTick ();
+
+    if (lastframe)
+    {
+        const u64 t = now - lastframe;
+        if (t > framemax)
+            framemax = t;
+        slow17 += t > 17 * tickspms;
+        slow34 += t > 34 * tickspms;
+        logframes++;
+    }
+    else
+    {
+        logstart = now;
+    }
+    lastframe = now;
+
+    // The next variant every 600 frames, after logging this one (the
+    // writing's own time falls outside both).
+    if (logframes == 600)
+    {
+        WriteLog ();
+        n3ds_pace_variant = n3ds_pace_variant % 4 + 1;
+        lastframe = logstart = svcGetSystemTick ();
+    }
+}
+
 static inline u16 ToRGB565 (unsigned r, unsigned g, unsigned b)
 {
     return (u16) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3));
@@ -142,6 +207,7 @@ static void MakeTop (void)
     GSPGPU_FlushDataCache (fb, topwidth * topheight * 2);
     gfxScreenSwapBuffers (GFX_TOP, false);
     toptks += svcGetSystemTick () - start;
+    parttks[WT_TOP] += svcGetSystemTick () - start;
 
     if (n3ds_pace_variant == 2)
         gspWaitForVBlank ();
@@ -205,10 +271,12 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
 
     const u64 waitstart = svcGetSystemTick ();
     fliptks += waitstart - flipstart;
+    parttks[WT_FLIP] += waitstart - flipstart;
 
     // Core 2 done with the last frame: its copies are free.
     WaitTop ();
     waittks += svcGetSystemTick () - waitstart;
+    parttks[WT_WAIT] += svcGetSystemTick () - waitstart;
 
     if (++timedframes == 60)
     {

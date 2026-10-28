@@ -1,5 +1,6 @@
 // WL_DRAW.C
 
+#include <3ds.h>
 #include "wl_def.h"
 #include "n3ds_wide.h"
 #include "n3ds_hud.h"
@@ -1679,6 +1680,7 @@ void    ThreeDRefresh (void)
 
     // At 800x240: drawn into the wide view, twice the columns (see WideBegin).
     const bool wide = N3DS_Wide();
+    const unsigned long long drawstart = svcGetSystemTick();
     if(wide)
         WideBegin();
 
@@ -1724,7 +1726,12 @@ void    ThreeDRefresh (void)
     DrawPlayerWeapon ();    // draw player's hands
 
     if(wide)
+    {
+        const unsigned long long endstart = svcGetSystemTick();
+        N3DS_WideTime(WT_DRAW, endstart - drawstart);
         WideEnd();
+        N3DS_WideTime(WT_WIDEEND, svcGetSystemTick() - endstart);
+    }
 
     if(Keyboard[sc_Tab] && viewsize == 21 && gamestate.weapon != -1)
         ShowActStatus();

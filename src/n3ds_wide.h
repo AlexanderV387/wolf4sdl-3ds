@@ -33,4 +33,10 @@ extern bool n3ds_wide_view_ready;
 extern int n3ds_pace_variant;
 extern int n3ds_flip_ms, n3ds_top_ms, n3ds_wait_ms;
 
+// [test] Times per frame for the log (/3ds/wolf4sdl/wide-log.txt), written
+// once per variant: what each part of the frame took.
+enum { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_TOP, WT_VBLANK, WT_COUNT };
+void N3DS_WideTime (int part, unsigned long long ticks);
+void N3DS_WideFrameDone (void);   // a frame shown: count it, log if due
+
 #endif

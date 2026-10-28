@@ -338,18 +338,13 @@ static void UpdateBottom (SDL_Surface *dest)
 void N3DS_Flip (SDL_Surface *dest)
 {
     CountFrame ();
+    u64 hudstart = svcGetSystemTick ();
     UpdateBottom (dest);
+    if (N3DS_Wide ())
+        N3DS_WideTime (WT_HUD, svcGetSystemTick () - hudstart);
 
     if (N3DS_Wide ())
     {
-        // [test] The next variant every 600 frames.
-        static int variantframes;
-        if (++variantframes == 600)
-        {
-            variantframes = 0;
-            n3ds_pace_variant = n3ds_pace_variant % 4 + 1;
-        }
-
         // The 3D view at 800 columns, if this frame is the one just drawn.
         N3DS_WidePresent (dest, screenBuffer, n3ds_wide_view_ready);
         n3ds_wide_view_ready = false;
@@ -363,6 +358,13 @@ void N3DS_Flip (SDL_Surface *dest)
     // screen: the game ran at its own 70 Hz and the screen showed 60 of
     // those frames unevenly. Wait for the vertical blank here instead (not
     // when the HOME Menu closes the game: the screens are no longer ours).
+    u64 vblankstart = svcGetSystemTick ();
     if (!aptShouldClose () && (!N3DS_Wide () || n3ds_pace_variant == 1 || n3ds_pace_variant == 4))
         gspWaitForVBlank ();
+
+    if (N3DS_Wide ())
+    {
+        N3DS_WideTime (WT_VBLANK, svcGetSystemTick () - vblankstart);
+        N3DS_WideFrameDone ();
+    }
 }
