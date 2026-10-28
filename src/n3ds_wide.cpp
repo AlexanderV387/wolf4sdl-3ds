@@ -50,14 +50,13 @@ byte *N3DS_WideView (void)
 }
 
 // ==========================================================================
-// Video mode: SDL draws the bottom screen; the game, both screens' rows in
-// one 400x480 surface as before.
-
-static SDL_Surface *bottomscreen;
+// Video mode: SDL's on the bottom screen only, never flipped (both screens
+// are made here); the game draws both screens' rows into one 400x480
+// surface as before.
 
 SDL_Surface *N3DS_WideSetVideoMode (void)
 {
-    bottomscreen = SDL_SetVideoMode (screenWidth, 240, 32, SDL_BOTTOMSCR | SDL_DOUBLEBUF);
+    SDL_Surface *bottomscreen = SDL_SetVideoMode (screenWidth, 240, 32, SDL_BOTTOMSCR | SDL_DOUBLEBUF);
 
     if (!bottomscreen)
         return NULL;
@@ -71,8 +70,8 @@ SDL_Surface *N3DS_WideSetVideoMode (void)
     gfxSetWide (true);
 
     // The bottom one too: made on core 2 as well (through SDL it took the
-    // main core 4 ms a frame, and SDL's video thread runs there too), and
-    // only when it changes.
+    // main core 4 ms a frame, besides SDL's video thread there), and only
+    // when it changes.
     gfxSetScreenFormat (GFX_BOTTOM, GSP_RGB565_OES);
     return both;
 }
@@ -97,85 +96,11 @@ static struct
     bool bottomnew;             // bottomcopy changed: to the bottom screen
 } job;
 
-// The bottom screen's 320x240 as last sent, in the surface's format.
+// The bottom screen's 320 columns as last sent, in the surface's format.
 static u32 *bottomcopy;
 static const int bottomwidth = 320;
 
 static u32 *rowscopy;
-
-// [test] Pacing variants, each for 600 frames: 1 the vertical blank waited
-// on the main thread only if none passed since the last frame; 2 none; 3 as
-// 1 without the narrow copy of the 3D view.
-int n3ds_pace_variant = 1;
-int n3ds_flip_ms, n3ds_top_ms, n3ds_wait_ms;
-static u64 fliptks, toptks, waittks;
-static int timedframes;
-static const u64 tickspms = 268111;
-
-static u64 parttks[WT_COUNT];
-static u64 logstart, lastframe, framemax;
-static int logframes, slow17, slow34;
-
-void N3DS_WideTime (int part, unsigned long long ticks)
-{
-    parttks[part] += ticks;
-}
-
-static void WriteLog (void)
-{
-    static bool started;
-    FILE *f = fopen ("/3ds/wolf4sdl/wide-log.txt", started ? "a" : "w");
-
-    if (f)
-    {
-        if (!started)
-            fprintf (f, "variant frames fps | ms per frame: draw wideend hud bottomcompare wait vblank"
-                        " top(core2) bottom(core2) | worst ms, frames over 17 ms, over 34 ms\n");
-        started = true;
-
-        const double n = logframes, ms = tickspms;
-        fprintf (f, "%d %d %.1f |", n3ds_pace_variant, logframes,
-                 n * 1000.0 * ms / (double) (lastframe - logstart));
-        static const int order[] = { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_VBLANK, WT_TOP, WT_BOTTOM };
-        for (int i : order)
-            fprintf (f, " %.1f", parttks[i] / n / ms);
-        fprintf (f, " | %.1f %d %d\n", framemax / ms, slow17, slow34);
-        fclose (f);
-    }
-
-    memset (parttks, 0, sizeof (parttks));
-    framemax = 0;
-    logframes = slow17 = slow34 = 0;
-}
-
-void N3DS_WideFrameDone (void)
-{
-    const u64 now = svcGetSystemTick ();
-
-    if (lastframe)
-    {
-        const u64 t = now - lastframe;
-        if (t > framemax)
-            framemax = t;
-        slow17 += t > 17 * tickspms;
-        slow34 += t > 34 * tickspms;
-        logframes++;
-    }
-    else
-    {
-        logstart = now;
-    }
-    lastframe = now;
-
-    // The next variant every 600 frames, after logging this one (the
-    // writing's own time falls outside both).
-    if (logframes == 600)
-    {
-        WriteLog ();
-        n3ds_pace_variant = n3ds_pace_variant % 3 + 1;
-        lastframe = logstart = svcGetSystemTick ();
-    }
-}
 
 static inline u16 ToRGB565 (unsigned r, unsigned g, unsigned b)
 {
@@ -184,7 +109,6 @@ static inline u16 ToRGB565 (unsigned r, unsigned g, unsigned b)
 
 static void MakeTop (void)
 {
-    const u64 start = svcGetSystemTick ();
     u16 *fb = (u16 *) gfxGetFramebuffer (GFX_TOP, GFX_LEFT, NULL, NULL);
     const int block = 8;
 
@@ -216,12 +140,9 @@ static void MakeTop (void)
 
     GSPGPU_FlushDataCache (fb, topwidth * topheight * 2);
     gfxScreenSwapBuffers (GFX_TOP, false);
-    toptks += svcGetSystemTick () - start;
-    parttks[WT_TOP] += svcGetSystemTick () - start;
 
     if (job.bottomnew)
     {
-        const u64 bottomstart = svcGetSystemTick ();
         u16 *bfb = (u16 *) gfxGetFramebuffer (GFX_BOTTOM, GFX_LEFT, NULL, NULL);
 
         for (int x = 0; x < bottomwidth; x++)
@@ -238,7 +159,6 @@ static void MakeTop (void)
 
         GSPGPU_FlushDataCache (bfb, bottomwidth * topheight * 2);
         gfxScreenSwapBuffers (GFX_BOTTOM, false);
-        parttks[WT_BOTTOM] += svcGetSystemTick () - bottomstart;
     }
 }
 
@@ -280,30 +200,23 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
         }
     }
 
-    static unsigned frame;
-    frame++;
-
     if (aptShouldClose ())
         return;
 
-    const u64 waitstart = svcGetSystemTick ();
-
     // Core 2 done with the last frame: its copies are free.
     WaitTop ();
-    waittks += svcGetSystemTick () - waitstart;
-    parttks[WT_WAIT] += svcGetSystemTick () - waitstart;
 
-    // The bottom screen, if it changed: compared with the last one sent
-    // (core 2 is done with that copy now).
+    // The bottom screen, if it changed since the last one sent.
     if (!bottomcopy)
     {
         bottomcopy = (u32 *) calloc (bottomwidth * topheight, 4);
         CHECKMALLOCRESULT (bottomcopy);
     }
 
+    static bool bottomsent;
     const int left = (screen->w - bottomwidth) / 2;
-    const u64 bottomstart = svcGetSystemTick ();
-    job.bottomnew = frame == 1;
+    job.bottomnew = !bottomsent;
+    bottomsent = true;
 
     for (int y = 0; y < topheight; y++)
     {
@@ -315,17 +228,6 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
             memcpy (dst, src, bottomwidth * 4);
             job.bottomnew = true;
         }
-    }
-    fliptks += svcGetSystemTick () - bottomstart;
-    parttks[WT_FLIP] += svcGetSystemTick () - bottomstart;
-
-    if (++timedframes == 60)
-    {
-        n3ds_flip_ms = (int) (fliptks / 60 / tickspms);
-        n3ds_top_ms = (int) (toptks / 60 / tickspms);
-        n3ds_wait_ms = (int) (waittks / 60 / tickspms);
-        fliptks = toptks = waittks = 0;
-        timedframes = 0;
     }
 
     const SDL_PixelFormat *f = screen->format;

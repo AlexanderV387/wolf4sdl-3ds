@@ -556,7 +556,7 @@ void PollControls (void)
     static int lasttouchx = 0;
     int touchturnx = 0;
     if (touchturn && (kDown & KEY_TOUCH) && !n3ds_keyboard::OwnsTouch ()
-            && !n3ds_weapons::OwnsTouch ())
+            && !n3ds_weapons::OwnsTouch () && !N3DS_MapOwnsTouch ())
     {
         touchPosition touch;
         hidTouchRead(&touch);

@@ -226,6 +226,10 @@ void ReadConfig(void)
             if(read(file,&widescreen800,sizeof(widescreen800)) != sizeof(widescreen800))
                 widescreen800 = true;
             widescreen800 = widescreen800 ? true : false;
+            // The map's zoom (1.7). Older settings: 4 pixels a tile.
+            if(read(file,&mapzoom,sizeof(mapzoom)) != sizeof(mapzoom)
+                    || mapzoom < 0 || mapzoom >= NUMMAPZOOMS)
+                mapzoom = 2;
             if(hudpos == hudpos_middle)     // no longer offered
                 hudpos = hudpos_top;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
@@ -367,6 +371,7 @@ void WriteConfig(void)
         write(file,&showfps,sizeof(showfps));
         write(file,&weaponbar,sizeof(weaponbar));
         write(file,&widescreen800,sizeof(widescreen800));
+        write(file,&mapzoom,sizeof(mapzoom));
 
         close(file);
     }

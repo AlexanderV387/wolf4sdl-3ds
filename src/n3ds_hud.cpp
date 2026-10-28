@@ -15,6 +15,7 @@ int hudpos = hudpos_top;
 boolean showmap = true;
 boolean showfps = false;
 boolean weaponbar = false;
+int mapzoom = 2;
 
 // Tiles seen since the level started: the original has no map, so this one
 // shows only what the player has seen (spotvis, cleared every frame).
@@ -124,10 +125,74 @@ static boolean IsSeen (int x, int y)
     return x >= 0 && x < MAPSIZE && y >= 0 && y < MAPSIZE && seen[x][y];
 }
 
-// Between maptop and mapbottom, centred on the player, 4 pixels per tile.
+// The zoom buttons, in the map's lower right corner: where they were drawn
+// this frame (-1: not drawn), and whether the touch held is theirs.
+static const int zoomsizes[NUMMAPZOOMS] = { 2, 3, 4, 6, 8 };   // pixels per tile
+static const int zoombuttonw = 22, zoombuttonh = 18;
+static const int zoomminusx = 320 - 2 * zoombuttonw - 6, zoomplusx = 320 - zoombuttonw - 2;
+static int zoomy = -1;
+static bool zoomowntouch, zoomwastouching;
+
+static void DrawZoomButtons (int y)
+{
+    Uint32 frame = SDL_MapRGB (target->format, 0x60, 0x60, 0x70);
+    Uint32 face = SDL_MapRGB (target->format, 0x18, 0x18, 0x24);
+    Uint32 sign = SDL_MapRGB (target->format, 0xe0, 0xe0, 0xe0);
+    Uint32 dim = SDL_MapRGB (target->format, 0x50, 0x50, 0x58);
+    const int xs[2] = { zoomminusx, zoomplusx };
+
+    for (int i = 0; i < 2; i++)
+    {
+        int x = xs[i];
+        bool usable = i == 0 ? mapzoom > 0 : mapzoom < NUMMAPZOOMS - 1;
+
+        Fill (x, y, zoombuttonw, zoombuttonh, frame);
+        Fill (x + 1, y + 1, zoombuttonw - 2, zoombuttonh - 2, face);
+        Fill (x + 6, y + zoombuttonh / 2 - 1, zoombuttonw - 12, 2, usable ? sign : dim);
+        if (i == 1)
+            Fill (x + zoombuttonw / 2 - 1, y + 4, 2, zoombuttonh - 8, usable ? sign : dim);
+    }
+
+    zoomy = y;
+}
+
+bool N3DS_MapZoomUpdate (bool touching, int x, int y)
+{
+    if (touching && !zoomwastouching)
+    {
+        zoomowntouch = zoomy >= 0 && y >= zoomy && y < zoomy + zoombuttonh
+                       && ((x >= zoomminusx && x < zoomminusx + zoombuttonw)
+                           || (x >= zoomplusx && x < zoomplusx + zoombuttonw));
+
+        if (zoomowntouch)
+        {
+            if (x < zoomplusx && mapzoom > 0)
+                mapzoom--;
+            else if (x >= zoomplusx && mapzoom < NUMMAPZOOMS - 1)
+                mapzoom++;
+        }
+    }
+    else if (!touching)
+    {
+        zoomowntouch = false;
+    }
+
+    zoomwastouching = touching;
+    return zoomowntouch;
+}
+
+bool N3DS_MapOwnsTouch (void)
+{
+    return zoomowntouch;
+}
+
+// Between maptop and mapbottom, centred on the player, at the zoom chosen.
 static void DrawMap (int maptop, int mapbottom)
 {
-    const int tilesize = 4;
+    if (mapzoom < 0 || mapzoom >= NUMMAPZOOMS)
+        mapzoom = 2;
+
+    const int tilesize = zoomsizes[mapzoom];
     SDL_PixelFormat *format = target->format;
     Uint32 background = SDL_MapRGB (format, 0x08, 0x08, 0x10);
     Uint32 floorcolor = SDL_MapRGB (format, 0x28, 0x38, 0x50);
@@ -176,9 +241,11 @@ static void DrawMap (int maptop, int mapbottom)
     double angle = player->angle * M_PI / 180;
     double dx = cos (angle), dy = -sin (angle);
 
-    for (int i = 0; i <= 8; i++)
+    for (int i = 0; i <= 2 * tilesize; i++)
         Fill ((int) (centerx + dx * i), (int) (centery + dy * i), 1, 1, playercolor);
     Fill ((int) centerx - 1, (int) centery - 1, 3, 3, playercolor);
+
+    DrawZoomButtons (mapbottom - zoombuttonh - 2);
 }
 
 // The keyboard on the bottom screen draws with this.
@@ -225,6 +292,7 @@ static void UpdateBottom (SDL_Surface *dest)
 
     target = dest;
     targetx = (dest->w - 320) / 2;
+    zoomy = -1;                     // until the map draws them
     targety = screenHeight;
 
     if (state != laststate)         // clear the bottom screen when it changes
@@ -306,20 +374,9 @@ static void UpdateBottom (SDL_Surface *dest)
     {
         // Frames per second (white) and milliseconds per frame (green).
         int y = cornery;
-        bool timed = N3DS_Wide ();
-        Fill (240, y, 78, timed ? 26 : 13, SDL_MapRGB (dest->format, 0, 0, 0));
+        Fill (256, y, 62, 13, SDL_MapRGB (dest->format, 0, 0, 0));
         DrawNumber (fps, 259, y + 2, 2, SDL_MapRGB (dest->format, 0xff, 0xff, 0xff));
         DrawNumber (framems, 289, y + 2, 2, SDL_MapRGB (dest->format, 0x80, 0xff, 0x80));
-
-        if (timed)
-        {
-            // [test] The variant (yellow), then the bottom screen's flip
-            // (cyan), the top screen (orange) and the wait for it (pink), in ms.
-            DrawNumber (n3ds_pace_variant, 242, y + 2, 2, SDL_MapRGB (dest->format, 0xff, 0xff, 0));
-            DrawNumber (n3ds_flip_ms, 243, y + 15, 2, SDL_MapRGB (dest->format, 0, 0xff, 0xff));
-            DrawNumber (n3ds_top_ms, 269, y + 15, 2, SDL_MapRGB (dest->format, 0xff, 0xa0, 0x40));
-            DrawNumber (n3ds_wait_ms, 295, y + 15, 2, SDL_MapRGB (dest->format, 0xff, 0x80, 0xc0));
-        }
     }
 
     if (SDL_MUSTLOCK (dest))
@@ -338,10 +395,7 @@ static void UpdateBottom (SDL_Surface *dest)
 void N3DS_Flip (SDL_Surface *dest)
 {
     CountFrame ();
-    u64 hudstart = svcGetSystemTick ();
     UpdateBottom (dest);
-    if (N3DS_Wide ())
-        N3DS_WideTime (WT_HUD, svcGetSystemTick () - hudstart);
 
     if (N3DS_Wide ())
     {
@@ -358,17 +412,12 @@ void N3DS_Flip (SDL_Surface *dest)
     // screen: the game ran at its own 70 Hz and the screen showed 60 of
     // those frames unevenly. Wait for the vertical blank here instead (not
     // when the HOME Menu closes the game: the screens are no longer ours).
-    u64 vblankstart = svcGetSystemTick ();
+    // At 800x240 only if none passed since the last frame: a frame of a
+    // little over 16.7 ms waited a whole refresh more (about 40 FPS).
     if (aptShouldClose ())
-        ;
-    else if (!N3DS_Wide ())
-        gspWaitForVBlank ();
-    else if (n3ds_pace_variant != 2)
-        gspWaitForEvent (GSPGPU_EVENT_VBlank0, false);  // [test] not if one passed
-
+        return;
     if (N3DS_Wide ())
-    {
-        N3DS_WideTime (WT_VBLANK, svcGetSystemTick () - vblankstart);
-        N3DS_WideFrameDone ();
-    }
+        gspWaitForEvent (GSPGPU_EVENT_VBlank0, false);
+    else
+        gspWaitForVBlank ();
 }
