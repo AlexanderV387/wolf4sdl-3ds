@@ -306,9 +306,20 @@ static void UpdateBottom (SDL_Surface *dest)
     {
         // Frames per second (white) and milliseconds per frame (green).
         int y = cornery;
-        Fill (256, y, 62, 13, SDL_MapRGB (dest->format, 0, 0, 0));
+        bool timed = N3DS_Wide ();
+        Fill (240, y, 78, timed ? 26 : 13, SDL_MapRGB (dest->format, 0, 0, 0));
         DrawNumber (fps, 259, y + 2, 2, SDL_MapRGB (dest->format, 0xff, 0xff, 0xff));
         DrawNumber (framems, 289, y + 2, 2, SDL_MapRGB (dest->format, 0x80, 0xff, 0x80));
+
+        if (timed)
+        {
+            // [test] The variant (yellow), then the bottom screen's flip
+            // (cyan), the top screen (orange) and the wait for it (pink), in ms.
+            DrawNumber (n3ds_pace_variant, 242, y + 2, 2, SDL_MapRGB (dest->format, 0xff, 0xff, 0));
+            DrawNumber (n3ds_flip_ms, 243, y + 15, 2, SDL_MapRGB (dest->format, 0, 0xff, 0xff));
+            DrawNumber (n3ds_top_ms, 269, y + 15, 2, SDL_MapRGB (dest->format, 0xff, 0xa0, 0x40));
+            DrawNumber (n3ds_wait_ms, 295, y + 15, 2, SDL_MapRGB (dest->format, 0xff, 0x80, 0xc0));
+        }
     }
 
     if (SDL_MUSTLOCK (dest))
@@ -331,6 +342,14 @@ void N3DS_Flip (SDL_Surface *dest)
 
     if (N3DS_Wide ())
     {
+        // [test] The next variant every 600 frames.
+        static int variantframes;
+        if (++variantframes == 600)
+        {
+            variantframes = 0;
+            n3ds_pace_variant = n3ds_pace_variant % 4 + 1;
+        }
+
         // The 3D view at 800 columns, if this frame is the one just drawn.
         N3DS_WidePresent (dest, screenBuffer, n3ds_wide_view_ready);
         n3ds_wide_view_ready = false;
@@ -344,6 +363,6 @@ void N3DS_Flip (SDL_Surface *dest)
     // screen: the game ran at its own 70 Hz and the screen showed 60 of
     // those frames unevenly. Wait for the vertical blank here instead (not
     // when the HOME Menu closes the game: the screens are no longer ours).
-    if (!aptShouldClose ())
+    if (!aptShouldClose () && (!N3DS_Wide () || n3ds_pace_variant == 1 || n3ds_pace_variant == 4))
         gspWaitForVBlank ();
 }

@@ -93,6 +93,15 @@ static struct
 
 static u32 *rowscopy;
 
+// [test] Pacing variants, each for 600 frames: 1 the vertical blank waited
+// on the main thread; 2 waited by core 2 after showing the frame; 3 none;
+// 4 as 1 with the bottom screen sent every other frame.
+int n3ds_pace_variant = 1;
+int n3ds_flip_ms, n3ds_top_ms, n3ds_wait_ms;
+static u64 fliptks, toptks, waittks;
+static int timedframes;
+static const u64 tickspms = 268111;
+
 static inline u16 ToRGB565 (unsigned r, unsigned g, unsigned b)
 {
     return (u16) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | (b >> 3));
@@ -100,6 +109,7 @@ static inline u16 ToRGB565 (unsigned r, unsigned g, unsigned b)
 
 static void MakeTop (void)
 {
+    const u64 start = svcGetSystemTick ();
     u16 *fb = (u16 *) gfxGetFramebuffer (GFX_TOP, GFX_LEFT, NULL, NULL);
     const int block = 8;
 
@@ -131,6 +141,10 @@ static void MakeTop (void)
 
     GSPGPU_FlushDataCache (fb, topwidth * topheight * 2);
     gfxScreenSwapBuffers (GFX_TOP, false);
+    toptks += svcGetSystemTick () - start;
+
+    if (n3ds_pace_variant == 2)
+        gspWaitForVBlank ();
 }
 
 static void WorkerMain (void *)
@@ -172,7 +186,11 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
     }
 
     // The bottom screen: its rows into SDL's surface.
-    if (bottomscreen)
+    static unsigned frame;
+    frame++;
+    const u64 flipstart = svcGetSystemTick ();
+
+    if (bottomscreen && (n3ds_pace_variant != 4 || (frame & 1)))
     {
         const int bytes = screen->w * 4;
 
@@ -185,8 +203,21 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
     if (aptShouldClose ())
         return;
 
+    const u64 waitstart = svcGetSystemTick ();
+    fliptks += waitstart - flipstart;
+
     // Core 2 done with the last frame: its copies are free.
     WaitTop ();
+    waittks += svcGetSystemTick () - waitstart;
+
+    if (++timedframes == 60)
+    {
+        n3ds_flip_ms = (int) (fliptks / 60 / tickspms);
+        n3ds_top_ms = (int) (toptks / 60 / tickspms);
+        n3ds_wait_ms = (int) (waittks / 60 / tickspms);
+        fliptks = toptks = waittks = 0;
+        timedframes = 0;
+    }
 
     const SDL_PixelFormat *f = screen->format;
     job.pitch = screen->pitch / 4;
