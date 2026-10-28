@@ -1,6 +1,7 @@
 // WL_DRAW.C
 
 #include "wl_def.h"
+#include "n3ds_wide.h"
 #include "n3ds_hud.h"
 #pragma hdrstop
 
@@ -40,6 +41,10 @@ int fps_frames=0, fps_time=0, fps=0;
 
 int *wallheight;
 int min_wallheight;
+
+// Columns of the view per pixel across: 2 while drawing into the 800x240
+// wide view (n3ds_wide), each column half as wide.
+static int viewcolumns = 1;
 
 //
 // math tables
@@ -723,16 +728,17 @@ void ScaleShape (int xcenter, int shapenum, unsigned height, uint32_t flags)
     if(!scale) return;   // too close or far away
 
     pixheight=scale*SPRITESCALEFACTOR;
-    actx=xcenter-scale;
+    const unsigned pixwidth=pixheight*viewcolumns;  // (across: viewcolumns per pixel)
+    actx=xcenter-scale*viewcolumns;
     upperedge=viewheight/2-scale;
 
     cmdptr=(word *) shape->dataofs;
 
-    for(i=shape->leftpix,pixcnt=i*pixheight,rpix=(pixcnt>>6)+actx;i<=shape->rightpix;i++,cmdptr++)
+    for(i=shape->leftpix,pixcnt=i*pixwidth,rpix=(pixcnt>>6)+actx;i<=shape->rightpix;i++,cmdptr++)
     {
         lpix=rpix;
         if(lpix>=viewwidth) break;
-        pixcnt+=pixheight;
+        pixcnt+=pixwidth;
         rpix=(pixcnt>>6)+actx;
         if(lpix!=rpix && rpix>0)
         {
@@ -804,16 +810,17 @@ void SimpleScaleShape (int xcenter, int shapenum, unsigned height)
 
     scale=height>>1;
     pixheight=scale*SPRITESCALEFACTOR;
-    actx=xcenter-scale;
+    const unsigned pixwidth=pixheight*viewcolumns;  // (across: viewcolumns per pixel)
+    actx=xcenter-scale*viewcolumns;
     upperedge=viewheight/2-scale;
 
     cmdptr=shape->dataofs;
 
-    for(i=shape->leftpix,pixcnt=i*pixheight,rpix=(pixcnt>>6)+actx;i<=shape->rightpix;i++,cmdptr++)
+    for(i=shape->leftpix,pixcnt=i*pixwidth,rpix=(pixcnt>>6)+actx;i<=shape->rightpix;i++,cmdptr++)
     {
         lpix=rpix;
         if(lpix>=viewwidth) break;
-        pixcnt+=pixheight;
+        pixcnt+=pixwidth;
         rpix=(pixcnt>>6)+actx;
         if(lpix!=rpix && rpix>0)
         {
@@ -1568,6 +1575,89 @@ void CalcViewVariables()
 ========================
 */
 
+// The 3D view drawn into the 800x240 wide view (n3ds_wide): the view's
+// width, centre, ray angles, wall heights and the sprites' scale across all
+// doubled; the heights (heightnumerator) and so the picture the same.
+static int narrowwidth, narrowcenterx;
+static fixed narrowscale;
+static short *narrowangles;
+static int *narrowheights;
+
+static void WideBegin (void)
+{
+    static short *wideangles;
+    static int *wideheights;
+    static int anglesfor = -1;
+    static int32_t anglesfocal = -1;
+
+    narrowwidth = viewwidth;
+    narrowcenterx = centerx;
+    narrowscale = scale;
+    narrowangles = pixelangle;
+    narrowheights = wallheight;
+
+    if(!wideangles)
+    {
+        wideangles = (short *) malloc(screenWidth * 2 * sizeof(short));
+        wideheights = (int *) malloc(screenWidth * 2 * sizeof(int));
+        CHECKMALLOCRESULT(wideangles);
+        CHECKMALLOCRESULT(wideheights);
+    }
+
+    viewwidth = narrowwidth * 2;
+    centerx = viewwidth / 2 - 1;
+    scale = narrowscale * 2;
+
+    // The rays' angles for twice the columns (as CalcProjection's).
+    if(anglesfor != viewwidth || anglesfocal != focallength)
+    {
+        const double facedist = focallength + MINDIST;
+        const int halfview = viewwidth / 2;
+
+        for(int i = 0; i < halfview; i++)
+        {
+            const double tang = (int32_t) i * 0x10000 / viewwidth / facedist; // (VIEWGLOBAL)
+            const int intang = (int) ((float) atan(tang) * (float) (FINEANGLES / 2 / PI));
+            wideangles[halfview - 1 - i] = intang;
+            wideangles[halfview + i] = -intang;
+        }
+
+        anglesfor = viewwidth;
+        anglesfocal = focallength;
+    }
+
+    pixelangle = wideangles;
+    wallheight = wideheights;
+    viewcolumns = 2;
+
+    vbuf = N3DS_WideView() + viewscreeny * screenWidth * 2 + viewscreenx * 2;
+    vbufPitch = screenWidth * 2;
+}
+
+static void WideEnd (void)
+{
+    // The narrow picture too, from every other column: for what reads the
+    // screen buffer (the fizzle, the menus over the game).
+    const byte *src = N3DS_WideView() + viewscreeny * screenWidth * 2 + viewscreenx * 2;
+    byte *dst = (byte *) screenBuffer->pixels + screenofs;
+
+    for(int y = 0; y < viewheight; y++)
+        for(int x = 0; x < narrowwidth; x++)
+            dst[y * bufferPitch + x] = src[y * screenWidth * 2 + x * 2];
+
+    // The actors' places across back to the narrow view's (shooting aims
+    // with them: GunAttack, against centerx and shootdelta).
+    for(objtype *ob = player->next; ob; ob = ob->next)
+        ob->viewx = (short) (narrowcenterx + (ob->viewx - centerx) / 2);
+
+    viewwidth = narrowwidth;
+    centerx = narrowcenterx;
+    scale = narrowscale;
+    pixelangle = narrowangles;
+    wallheight = narrowheights;
+    viewcolumns = 1;
+}
+
 void    ThreeDRefresh (void)
 {
 //
@@ -1586,6 +1676,11 @@ void    ThreeDRefresh (void)
 
     vbuf += screenofs;
     vbufPitch = bufferPitch;
+
+    // At 800x240: drawn into the wide view, twice the columns (see WideBegin).
+    const bool wide = N3DS_Wide();
+    if(wide)
+        WideBegin();
 
     CalcViewVariables();
 
@@ -1628,6 +1723,9 @@ void    ThreeDRefresh (void)
 
     DrawPlayerWeapon ();    // draw player's hands
 
+    if(wide)
+        WideEnd();
+
     if(Keyboard[sc_Tab] && viewsize == 21 && gamestate.weapon != -1)
         ShowActStatus();
 
@@ -1654,6 +1752,7 @@ void    ThreeDRefresh (void)
         //US_PrintSigned(fps);
        // US_Print(" fps");
         SDL_BlitSurface(screenBuffer, NULL, screen, NULL);
+        n3ds_wide_view_ready = wide;
         N3DS_Flip(screen);
     }
 

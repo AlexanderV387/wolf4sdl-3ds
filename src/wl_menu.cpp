@@ -17,6 +17,7 @@
 #include "wl_def.h"
 #include "n3ds_input.h"
 #include "n3ds_hud.h"
+#include "n3ds_wide.h"
 #include "n3ds_mission.h"
 #pragma hdrstop
 
@@ -126,7 +127,7 @@ CP_itemtype SndMenu[] = {
 enum { CTL_MOUSEENABLE, CTL_JOYENABLE, CTL_JOY2BUTTONUNKNOWN, CTL_GAMEPADUNKONWN, CTL_MOUSESENS, CTL_CUSTOMIZE };
 #else
 #ifdef __3DS__
-enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_MAP, CTL_TOUCHTURN, CTL_TOUCHSPEED, CTL_FPS, CTL_WEAPONS };
+enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE, CTL_HUDPOS, CTL_MAP, CTL_TOUCHTURN, CTL_TOUCHSPEED, CTL_FPS, CTL_WEAPONS, CTL_WIDE };
 #else
 enum { CTL_MOUSEENABLE, CTL_MOUSESENS, CTL_JOYENABLE, CTL_CUSTOMIZE };
 #endif
@@ -151,7 +152,8 @@ CP_itemtype CtlMenu[] = {
     {1, "Touch turning", 0},
     {1, "Touch speed: 4", 0},             // text set by DrawCtlScreen
     {1, "FPS counter", 0},
-    {1, "Weapon buttons", 0}
+    {1, "Weapon buttons", 0},
+    {1, "Screen 800x240", 0}              // text set by DrawCtlScreen
 #else
     {0, STR_MOUSEEN, 0},
     {0, STR_SENS, MouseSensitivity},
@@ -1990,6 +1992,13 @@ CP_Control (int)
                 WaitKeyUp ();
                 break;
 
+            case CTL_WIDE:                      // from the next start
+                widescreen800 ^= 1;
+                DrawCtlScreen ();
+                ShootSnd ();
+                WaitKeyUp ();
+                break;
+
             case CTL_TOUCHTURN:
                 touchturn ^= 1;
                 DrawCtlScreen ();
@@ -2196,6 +2205,9 @@ DrawCtlScreen (void)
                 hudpos == hudpos_bottom ? "HUD: bottom" : "HUD: top of bottom screen");
     snprintf (CtlMenu[CTL_TOUCHSPEED].string, sizeof (CtlMenu[CTL_TOUCHSPEED].string),
               "Touch speed: %d", touchspeed);
+    // The 3D view and the buffers are made for the width chosen at the start.
+    strcpy (CtlMenu[CTL_WIDE].string, (widescreen800 != 0) == N3DS_Wide ()
+            ? "Screen 800x240" : "Screen 800x240 (restart)");
     DrawMenu (&CtlItems, CtlMenu);
 
     x = CTL_X + CtlItems.indent - 24;
@@ -2205,6 +2217,7 @@ DrawCtlScreen (void)
     VWB_DrawPic (x, y + 13 * CTL_TOUCHTURN, touchturn ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
     VWB_DrawPic (x, y + 13 * CTL_FPS, showfps ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
     VWB_DrawPic (x, y + 13 * CTL_WEAPONS, weaponbar ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
+    VWB_DrawPic (x, y + 13 * CTL_WIDE, widescreen800 ? C_SELECTEDPIC : C_NOTSELECTEDPIC);
 #else
     if (IN_JoyPresent())
         CtlMenu[CTL_JOYENABLE].active = 1;

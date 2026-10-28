@@ -9,6 +9,7 @@
 #include "wl_def.h"
 #include "n3ds_input.h"
 #include "n3ds_hud.h"
+#include "n3ds_wide.h"
 #pragma hdrstop
 #include "wl_atmos.h"
 #include <SDL/SDL_syswm.h>
@@ -221,6 +222,10 @@ void ReadConfig(void)
             if(read(file,&weaponbar,sizeof(weaponbar)) != sizeof(weaponbar))
                 weaponbar = false;
             weaponbar = weaponbar ? true : false;
+            // The top screen at 800x240 (1.7). Older settings: on.
+            if(read(file,&widescreen800,sizeof(widescreen800)) != sizeof(widescreen800))
+                widescreen800 = true;
+            widescreen800 = widescreen800 ? true : false;
             if(hudpos == hudpos_middle)     // no longer offered
                 hudpos = hudpos_top;
             for(int i = 0; i < N3DS_NUMBUTTONS; i++)
@@ -361,6 +366,7 @@ void WriteConfig(void)
         write(file,&showmap,sizeof(showmap));
         write(file,&showfps,sizeof(showfps));
         write(file,&weaponbar,sizeof(weaponbar));
+        write(file,&widescreen800,sizeof(widescreen800));
 
         close(file);
     }

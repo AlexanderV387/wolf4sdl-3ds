@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include "wl_def.h"
 #include "n3ds_hud.h"
+#include "n3ds_wide.h"
 #include "n3ds_input.h"
 #include "n3ds_keyboard.h"
 #include "n3ds_weapons.h"
@@ -327,7 +328,17 @@ void N3DS_Flip (SDL_Surface *dest)
 {
     CountFrame ();
     UpdateBottom (dest);
-    SDL_Flip (dest);
+
+    if (N3DS_Wide ())
+    {
+        // The 3D view at 800 columns, if this frame is the one just drawn.
+        N3DS_WidePresent (dest, screenBuffer, n3ds_wide_view_ready);
+        n3ds_wide_view_ready = false;
+    }
+    else
+    {
+        SDL_Flip (dest);
+    }
 
     // SDL presents from its own thread, so nothing paced the game to the
     // screen: the game ran at its own 70 Hz and the screen showed 60 of

@@ -3,6 +3,7 @@
 #include <string.h>
 #include "wl_def.h"
 #include "n3ds_hud.h"
+#include "n3ds_wide.h"
 #pragma hdrstop
 
 // Uncomment the following line, if you get destination out of bounds
@@ -95,7 +96,12 @@ void	VL_SetVGAPlaneMode (void)
 
     // Both screens: rows 0-239 go to the top screen, rows 240-479 to the
     // bottom one, where n3ds_hud draws the status bar. No text console.
-    screen = SDL_SetVideoMode(screenWidth, N3DS_VIDEO_HEIGHT, 32, SDL_DUALSCR | SDL_DOUBLEBUF);
+    // At 800x240 (n3ds_wide): SDL on the bottom screen only, the same
+    // 400x480 surface for the game.
+    if(N3DS_Wide())
+        screen = N3DS_WideSetVideoMode();
+    else
+        screen = SDL_SetVideoMode(screenWidth, N3DS_VIDEO_HEIGHT, 32, SDL_DUALSCR | SDL_DOUBLEBUF);
     if(!screen)
     {
         printf("Unable to set %ix%ix%i video mode: %s\n", screenWidth,
