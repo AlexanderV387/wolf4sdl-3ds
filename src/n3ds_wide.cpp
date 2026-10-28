@@ -104,7 +104,8 @@ static const int bottomwidth = 320;
 static u32 *rowscopy;
 
 // [test] Pacing variants, each for 600 frames: 1 the vertical blank waited
-// on the main thread; 2 waited by core 2 after showing the frame; 3 none.
+// on the main thread only if none passed since the last frame; 2 none; 3 as
+// 1 without the narrow copy of the 3D view.
 int n3ds_pace_variant = 1;
 int n3ds_flip_ms, n3ds_top_ms, n3ds_wait_ms;
 static u64 fliptks, toptks, waittks;
@@ -239,9 +240,6 @@ static void MakeTop (void)
         gfxScreenSwapBuffers (GFX_BOTTOM, false);
         parttks[WT_BOTTOM] += svcGetSystemTick () - bottomstart;
     }
-
-    if (n3ds_pace_variant == 2)
-        gspWaitForVBlank ();
 }
 
 static void WorkerMain (void *)

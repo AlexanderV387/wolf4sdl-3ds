@@ -1642,6 +1642,7 @@ static void WideEnd (void)
     const byte *src = N3DS_WideView() + viewscreeny * screenWidth * 2 + viewscreenx * 2;
     byte *dst = (byte *) screenBuffer->pixels + screenofs;
 
+    if(n3ds_pace_variant != 3)   // [test]
     for(int y = 0; y < viewheight; y++)
         for(int x = 0; x < narrowwidth; x++)
             dst[y * bufferPitch + x] = src[y * screenWidth * 2 + x * 2];

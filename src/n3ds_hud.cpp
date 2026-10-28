@@ -359,8 +359,12 @@ void N3DS_Flip (SDL_Surface *dest)
     // those frames unevenly. Wait for the vertical blank here instead (not
     // when the HOME Menu closes the game: the screens are no longer ours).
     u64 vblankstart = svcGetSystemTick ();
-    if (!aptShouldClose () && (!N3DS_Wide () || n3ds_pace_variant == 1 || n3ds_pace_variant == 4))
+    if (aptShouldClose ())
+        ;
+    else if (!N3DS_Wide ())
         gspWaitForVBlank ();
+    else if (n3ds_pace_variant != 2)
+        gspWaitForEvent (GSPGPU_EVENT_VBlank0, false);  // [test] not if one passed
 
     if (N3DS_Wide ())
     {
