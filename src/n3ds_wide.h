@@ -28,14 +28,14 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
 // Set by ThreeDRefresh before showing the frame it drew into the wide view.
 extern bool n3ds_wide_view_ready;
 
-// [test] The pacing variant (1 to 4) and the milliseconds per frame of the
-// bottom screen's SDL_Flip, of making the top screen and of waiting for it.
+// [test] The pacing variant (1 to 3) and the milliseconds per frame of the
+// bottom screen's comparison, of making the top screen and of waiting for it.
 extern int n3ds_pace_variant;
 extern int n3ds_flip_ms, n3ds_top_ms, n3ds_wait_ms;
 
 // [test] Times per frame for the log (/3ds/wolf4sdl/wide-log.txt), written
 // once per variant: what each part of the frame took.
-enum { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_TOP, WT_VBLANK, WT_COUNT };
+enum { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_TOP, WT_VBLANK, WT_BOTTOM, WT_COUNT };
 void N3DS_WideTime (int part, unsigned long long ticks);
 void N3DS_WideFrameDone (void);   // a frame shown: count it, log if due
 

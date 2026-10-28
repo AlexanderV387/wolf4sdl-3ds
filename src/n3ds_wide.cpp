@@ -69,6 +69,11 @@ SDL_Surface *N3DS_WideSetVideoMode (void)
     // The top screen ours: ToRGB565 (half the bytes to write) and 800 wide.
     gfxSetScreenFormat (GFX_TOP, GSP_RGB565_OES);
     gfxSetWide (true);
+
+    // The bottom one too: made on core 2 as well (through SDL it took the
+    // main core 4 ms a frame, and SDL's video thread runs there too), and
+    // only when it changes.
+    gfxSetScreenFormat (GFX_BOTTOM, GSP_RGB565_OES);
     return both;
 }
 
@@ -89,13 +94,17 @@ static struct
     const byte *view;
     int vx0, vx1, vy0, vy1;     // the view's rectangle, 800 across
     u16 colors[256];            // the view's palette, RGB565
+    bool bottomnew;             // bottomcopy changed: to the bottom screen
 } job;
+
+// The bottom screen's 320x240 as last sent, in the surface's format.
+static u32 *bottomcopy;
+static const int bottomwidth = 320;
 
 static u32 *rowscopy;
 
 // [test] Pacing variants, each for 600 frames: 1 the vertical blank waited
-// on the main thread; 2 waited by core 2 after showing the frame; 3 none;
-// 4 as 1 with the bottom screen sent every other frame.
+// on the main thread; 2 waited by core 2 after showing the frame; 3 none.
 int n3ds_pace_variant = 1;
 int n3ds_flip_ms, n3ds_top_ms, n3ds_wait_ms;
 static u64 fliptks, toptks, waittks;
@@ -119,14 +128,14 @@ static void WriteLog (void)
     if (f)
     {
         if (!started)
-            fprintf (f, "variant frames fps | ms per frame: draw wideend hud flip wait vblank"
-                        " top(core2) | worst ms, frames over 17 ms, over 34 ms\n");
+            fprintf (f, "variant frames fps | ms per frame: draw wideend hud bottomcompare wait vblank"
+                        " top(core2) bottom(core2) | worst ms, frames over 17 ms, over 34 ms\n");
         started = true;
 
         const double n = logframes, ms = tickspms;
         fprintf (f, "%d %d %.1f |", n3ds_pace_variant, logframes,
                  n * 1000.0 * ms / (double) (lastframe - logstart));
-        static const int order[] = { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_VBLANK, WT_TOP };
+        static const int order[] = { WT_DRAW, WT_WIDEEND, WT_HUD, WT_FLIP, WT_WAIT, WT_VBLANK, WT_TOP, WT_BOTTOM };
         for (int i : order)
             fprintf (f, " %.1f", parttks[i] / n / ms);
         fprintf (f, " | %.1f %d %d\n", framemax / ms, slow17, slow34);
@@ -162,7 +171,7 @@ void N3DS_WideFrameDone (void)
     if (logframes == 600)
     {
         WriteLog ();
-        n3ds_pace_variant = n3ds_pace_variant % 4 + 1;
+        n3ds_pace_variant = n3ds_pace_variant % 3 + 1;
         lastframe = logstart = svcGetSystemTick ();
     }
 }
@@ -209,6 +218,28 @@ static void MakeTop (void)
     toptks += svcGetSystemTick () - start;
     parttks[WT_TOP] += svcGetSystemTick () - start;
 
+    if (job.bottomnew)
+    {
+        const u64 bottomstart = svcGetSystemTick ();
+        u16 *bfb = (u16 *) gfxGetFramebuffer (GFX_BOTTOM, GFX_LEFT, NULL, NULL);
+
+        for (int x = 0; x < bottomwidth; x++)
+        {
+            u16 *dst = &bfb[x * topheight + topheight - 1];
+
+            for (int y = 0; y < topheight; y++)
+            {
+                const u32 p = bottomcopy[y * bottomwidth + x];
+                *dst-- = ToRGB565 ((p >> job.rshift) & 0xFF, (p >> job.gshift) & 0xFF,
+                                 (p >> job.bshift) & 0xFF);
+            }
+        }
+
+        GSPGPU_FlushDataCache (bfb, bottomwidth * topheight * 2);
+        gfxScreenSwapBuffers (GFX_BOTTOM, false);
+        parttks[WT_BOTTOM] += svcGetSystemTick () - bottomstart;
+    }
+
     if (n3ds_pace_variant == 2)
         gspWaitForVBlank ();
 }
@@ -251,32 +282,44 @@ void N3DS_WidePresent (SDL_Surface *screen, SDL_Surface *source, bool view_ready
         }
     }
 
-    // The bottom screen: its rows into SDL's surface.
     static unsigned frame;
     frame++;
-    const u64 flipstart = svcGetSystemTick ();
-
-    if (bottomscreen && (n3ds_pace_variant != 4 || (frame & 1)))
-    {
-        const int bytes = screen->w * 4;
-
-        for (int y = 0; y < 240; y++)
-            memcpy ((byte *) bottomscreen->pixels + y * bottomscreen->pitch,
-                    (byte *) screen->pixels + (240 + y) * screen->pitch, bytes);
-        SDL_Flip (bottomscreen);
-    }
 
     if (aptShouldClose ())
         return;
 
     const u64 waitstart = svcGetSystemTick ();
-    fliptks += waitstart - flipstart;
-    parttks[WT_FLIP] += waitstart - flipstart;
 
     // Core 2 done with the last frame: its copies are free.
     WaitTop ();
     waittks += svcGetSystemTick () - waitstart;
     parttks[WT_WAIT] += svcGetSystemTick () - waitstart;
+
+    // The bottom screen, if it changed: compared with the last one sent
+    // (core 2 is done with that copy now).
+    if (!bottomcopy)
+    {
+        bottomcopy = (u32 *) calloc (bottomwidth * topheight, 4);
+        CHECKMALLOCRESULT (bottomcopy);
+    }
+
+    const int left = (screen->w - bottomwidth) / 2;
+    const u64 bottomstart = svcGetSystemTick ();
+    job.bottomnew = frame == 1;
+
+    for (int y = 0; y < topheight; y++)
+    {
+        const u32 *src = (const u32 *) ((byte *) screen->pixels + (topheight + y) * screen->pitch) + left;
+        u32 *dst = bottomcopy + y * bottomwidth;
+
+        if (job.bottomnew || memcmp (dst, src, bottomwidth * 4))
+        {
+            memcpy (dst, src, bottomwidth * 4);
+            job.bottomnew = true;
+        }
+    }
+    fliptks += svcGetSystemTick () - bottomstart;
+    parttks[WT_FLIP] += svcGetSystemTick () - bottomstart;
 
     if (++timedframes == 60)
     {
