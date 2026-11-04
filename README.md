@@ -40,6 +40,10 @@ With more than one game on the SD card, a menu chooses one at startup, and Quit 
 
 Builds for a single game (`wolf4sdl-wolf3d`, `wolf4sdl-wolf3d-shareware`, `wolf4sdl-sod`, `wolf4sdl-sod-demo`, each with its own HOME Menu icon) are still made by every run in [Actions](../../actions) (branch `n3ds`); releases up to 1.4.0 include them too.
 
+## Tested on hardware
+
+On a New Nintendo 3DS: Wolfenstein 3D (Steam data) and Spear of Destiny. Not tested yet: the shareware, the Spear of Destiny demo and mission packs 2 and 3.
+
 ## Default controls
 
 | Button | Action |

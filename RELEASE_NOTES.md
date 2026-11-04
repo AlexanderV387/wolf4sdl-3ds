@@ -93,6 +93,6 @@ With more than one game on the SD card, a menu chooses one at startup, and Quit 
 
 ## Tested
 
-Wolfenstein 3D (Steam data) on a New Nintendo 3DS with Luma3DS 13.4. The shareware and Spear of Destiny builds compile but have not been tested on hardware yet.
+Wolfenstein 3D (Steam data) and Spear of Destiny on a New Nintendo 3DS with Luma3DS 13.4. Not tested yet: the shareware, the Spear of Destiny demo and mission packs 2 and 3.
 
 Developed with the help of an AI assistant (Claude); the icon and banner were made with AI tools.
